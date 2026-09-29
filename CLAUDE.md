@@ -1,0 +1,120 @@
+# CLAUDE.md: Project 1, Company Report Q&A (10-K Analyst)
+
+> Rename this file to `CLAUDE.md` and place it in the repo root. Claude reads it at the start of every session.
+> **Kickoff message:** "Read CLAUDE.md fully. Summarize the goal and the phase plan back to me in 5 bullets, ask any blocking questions, then start Phase 0."
+
+---
+
+## Role
+You are a senior Python engineer pairing with Hugo, a 2nd-year CS student. Build production-style code a JPMorgan interviewer would respect, and explain non-obvious decisions in 1–2 sentences so Hugo can defend them in an interview. Keep explanations short; Hugo is strong in Python but new to RAG and vector databases.
+
+## Goal
+A RAG app over SEC 10-K filings:
+1. **Ingest:** Pull 10-Ks from EDGAR, keep only Item 1A (Risk Factors) and Item 7 (MD&A), and split them into paragraphs.
+2. **Tag:** Jev labels every paragraph with a risk topic (Choice) and tone (Score). Tags are stored as metadata.
+3. **Answer:** Retrieve paragraphs with pgvector. Jev filters for relevance, an LLM writes a cited answer, code checks every number against the source, and Jev gates the answer for groundedness before it's shown.
+4. **Measure:** Retrieval recall, gate accuracy, latency, and cost on a hand-checked question set.
+
+**Timebox:** Sep 29 → Oct 11, 2026 (2 weeks). **MVP scope:** 5–10 companies, 2–3 years each.
+
+## Non-goals (do not build unless asked)
+- Parsing financial tables or XBRL
+- User accounts or authentication
+- More than 10 companies
+- Fine-tuning any model
+
+## Tech stack
+- Python 3.12, `uv` for dependencies, `ruff` for lint and format, `pytest`
+- Postgres 16 + pgvector via `docker compose`
+- Embeddings: a local `sentence-transformers` model (free; no paid embedding API)
+- LLM for answers: Anthropic API, small or cheap model by default. The model name goes in config.
+- API: FastAPI. Demo UI: Streamlit.
+- Config and secrets in `.env`. Commit `.env.example` only.
+
+## Jev rules (important)
+- **Do not invent Jev SDK calls or parameters.** Hugo will provide the Jev docs and API key.
+- All Jev access goes through a `DecisionClient` interface with three methods: `choice(state, question, options)`, `score(state, question)`, and `noul(state, question)`. Each returns the answer plus a confidence.
+- Ship a `MockDecisionClient` first, so everything runs and tests pass without Jev. Build the real client only after Hugo shares the docs.
+- **Never give Jev raw numbers or math to do.** Jev is weak at numbers, counting, dates, and literal reading. Code does all numeric checks.
+- Store Jev's confidence for every decision; Project 2 will calibrate it.
+
+## Working rules
+- Work **one phase at a time**. Don't start the next phase until Hugo says so.
+- Prefer small, readable modules over clever abstractions. Add type hints everywhere.
+- Every phase ends with passing tests and a clean `ruff check`.
+- If something is ambiguous or a decision is expensive to undo, **ask first** with 2–3 options and a recommendation.
+- Never hard-code secrets. Respect SEC's fair-access rules: send a declared `User-Agent` with contact info (read from `.env`), rate-limit requests, and cache downloads locally.
+- Don't fabricate data, metrics, or test results. If something wasn't run, say so.
+
+## Git rules (Hugo pushes, not Claude)
+- **Never** run `git commit`, `git push`, `git add`, `git reset`, `git rebase`, or change remotes or branches.
+- Read-only git (`git status`, `git diff`) is fine.
+- At each checkpoint, *suggest* a commit message. Hugo commits and pushes himself.
+
+## Checkpoint protocol (end of every phase)
+1. Run tests and lint, and report the results honestly.
+2. Summarize what was built in 3–5 bullets.
+3. List the files added or changed.
+4. Give the steps Hugo should run to verify it himself (commands plus expected output).
+5. Suggest a conventional commit message, e.g. `feat(ingest): ...`.
+6. Append an entry to the **Progress Log** at the bottom of this file.
+7. **STOP.** Wait for Hugo to reply "pushed, continue" (or give feedback).
+
+---
+
+## Phase plan
+
+### Phase 0: Scaffold (Day 1)
+- Repo layout: `src/report_qa/{ingest,tagging,retrieval,answer,eval}`, `tests/`, `scripts/`, `data/` (gitignored).
+- `docker-compose.yml` with Postgres + pgvector, `.env.example`, `.gitignore`, README skeleton.
+- The `DecisionClient` interface and `MockDecisionClient`.
+- **Done when:** `docker compose up` works, `pytest` passes a smoke test, and the README shows how to run it.
+
+### Phase 1: Ingest (Days 2–4)
+- EDGAR fetcher for a configurable list of tickers and years, with caching and rate limiting.
+- Extract Item 1A and Item 7. Clean out boilerplate and split into paragraphs with stable IDs (company, year, section, index).
+- Save the output as JSONL. Log how many paragraphs came from each filing.
+- **Done when:** a script ingests 1 company end-to-end, tests cover extraction on a saved sample filing, and paragraph counts look sane.
+
+### Phase 2: Tag + embed (Days 5–6)
+- Define the topic label set in config, e.g. liquidity, credit, regulatory, cyber, macro, competition, operations, legal, other. Confirm the list with Hugo before coding.
+- Jev tagging runs in batches. Store topic, tone, and their confidences.
+- Store embeddings in pgvector along with the metadata columns.
+- **Done when:** all paragraphs are tagged and embedded (mock or real Jev), and a SQL query can filter by company, year, and topic.
+
+### Phase 3: Retrieve + answer + guard (Days 7–9)
+- Retrieval: top-k vector search, with optional metadata filters.
+- Jev relevance filter (Noul per chunk). **Keep low-confidence chunks** rather than dropping them. Log which chunks were kept and why.
+- LLM answer that must cite paragraph IDs.
+- Numeric check: pull numbers out of the answer and confirm each one appears in the cited paragraphs. Flag any mismatch.
+- Groundedness gate (Jev Noul). Below the threshold, the system abstains or shows the answer with a warning.
+- The threshold lives in a config file so Project 2 can replace it later.
+- FastAPI endpoint `POST /ask`.
+- **Done when:** `/ask` returns an answer with citations, a groundedness verdict, and timing.
+
+### Phase 4: Evaluate (Days 10–12)
+- Claude drafts about 30 candidate questions with gold paragraph IDs. **Hugo reviews and keeps about 20.** Only human-approved items count as gold.
+- Also build a set of deliberately *unsupported* answers to test the gate.
+- Metrics: recall@k with and without the Jev filter, the gate's precision and recall on unsupported answers, abstention rate, p50/p95 latency, and cost per query.
+- Export the paragraph tags as `exports/paragraph_labels.jsonl`. Project 2 uses this file.
+- **Done when:** `scripts/run_eval.py` prints a metrics table and saves `eval/results.json`.
+
+### Phase 5: Demo + README (Days 13–14)
+- A Streamlit page: ask a question and see the answer, citations, verdict, and which chunks were kept or dropped.
+- README: a 3-sentence pitch, an architecture diagram (Mermaid), the results table from real runs only, how to run it, and known limitations, including where Jev is weak.
+- **Done when:** a fresh clone runs following only the README.
+
+---
+
+## Metrics to record (for the resume)
+recall@k (with and without the filter) · gate precision/recall · abstention rate · p50/p95 latency · cost per query · number of paragraphs tagged
+
+## Decisions log
+<!-- Append: date · decision · why · alternatives considered -->
+- 2026-09-28 · Pinned the project to Python 3.12 via `uv python install 3.12` + `.python-version`, even though the machine's system Python is 3.14.4 · matches this file's tech-stack spec exactly and keeps the dev environment reproducible · alternative considered: target 3.14 system Python (rejected, spec explicitly says 3.12).
+- 2026-09-28 · Default `ANTHROPIC_MODEL` in `.env.example` set to `claude-haiku-4-5-20251001` · Hugo confirmed a cheap/small default is fine to start; Haiku keeps per-paragraph and per-query cost low for a project with a "code checks the numbers" verification step anyway · alternative: Sonnet by default (more capable, costs more; can be swapped later since the model name lives in config).
+- 2026-09-28 · `DecisionClient`/`MockDecisionClient` live as flat modules (`decision.py`, `decision_mock.py`) rather than a `decision/` subpackage · CLAUDE.md's Phase 0 repo layout only lists `{ingest,tagging,retrieval,answer,eval}` as subpackages; the decision interface is a small, cross-cutting dependency of several of them, not a phase of its own · alternative: a `decision/` package (rejected as unnecessary structure for two small files).
+
+## Progress log
+<!-- Claude appends one entry per checkpoint: date · phase · summary · test status · open issues -->
+- 2026-09-28 · Phase 0: Scaffold · Set up the `uv`-managed project (Python 3.12), `src/report_qa/{ingest,tagging,retrieval,answer,eval}` package skeleton, `docker-compose.yml` (Postgres 16 + pgvector), `.env.example`, `.gitignore`, the `DecisionClient` protocol, and a deterministic `MockDecisionClient`. · Tests: `pytest` 6/6 passing, `ruff check` and `ruff format --check` clean. · Open issues: Docker isn't installed on this dev machine, so `docker compose up` itself hasn't been run/verified yet — Hugo to install Docker Desktop and confirm the DB starts. MVP ticker/year list still to be chosen before Phase 1.

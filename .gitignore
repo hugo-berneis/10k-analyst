@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Environments
+.venv/
+.env
+
+# Project data (EDGAR downloads, caches, eval outputs)
+data/
+eval/results.json
+exports/
+
+# Editors / OS
+.DS_Store
+.vscode/
+.idea/
