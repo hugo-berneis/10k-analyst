@@ -1,0 +1,18 @@
+# Fixed risk-topic label set for Jev's choice() call (Phase 2). Jev must
+# pick exactly one of these per paragraph -- it can never answer outside
+# this list. Confirmed with Hugo: the base set from CLAUDE.md plus
+# supply_chain and labor, since both come up heavily and distinctly across
+# the MVP companies (Apple/Walmart on supply chain, Walmart/Coca-Cola on
+# labor) and would otherwise get flattened into "operations".
+topics:
+  - liquidity
+  - credit
+  - regulatory
+  - cyber
+  - macro
+  - competition
+  - operations
+  - legal
+  - supply_chain
+  - labor
+  - other

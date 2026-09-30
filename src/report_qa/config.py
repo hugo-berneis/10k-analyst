@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-haiku-4-5-20251001"
 
+    # Free, local, no API key needed -- runs on CPU fine at this project's scale.
+    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+
     jev_api_key: str = ""
     jev_base_url: str = ""
 

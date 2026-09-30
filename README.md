@@ -69,9 +69,9 @@ Retrieval, answering, and the demo UI require the phases below to be finished; r
 
 ## Roadmap
 
-- [ ] Project scaffold + local database
+- [x] Project scaffold + local database
 - [x] EDGAR ingestion (Risk Factors + MD&A)
-- [ ] Paragraph tagging + embeddings
+- [x] Paragraph tagging + embeddings
 - [ ] Retrieval, answering, and verification
 - [ ] Evaluation on a hand-checked question set
 - [ ] Demo UI
