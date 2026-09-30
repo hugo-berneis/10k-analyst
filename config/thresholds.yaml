@@ -1,0 +1,18 @@
+# Tunable knobs for retrieval and the answer-verification gate. Kept out of
+# code so Project 2 can calibrate these against real data without a
+# deploy -- see CLAUDE.md's Jev rules ("store confidence for every decision;
+# Project 2 will calibrate it").
+
+# How many candidate paragraphs vector search returns before the relevance
+# filter runs.
+retrieval_top_k: 8
+
+# Jev's relevance filter only drops a candidate when it says "not relevant"
+# with at least this much confidence. Below it, the chunk is kept -- per
+# CLAUDE.md, an uncertain Jev should never silently remove context.
+relevance_drop_confidence: 0.8
+
+# Jev's groundedness check must clear this confidence for the answer to be
+# shown normally. Below it (or if the numeric check finds an unsupported
+# number), the answer is shown with a warning or withheld.
+groundedness_threshold: 0.6

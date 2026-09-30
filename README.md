@@ -63,16 +63,26 @@ docker compose up -d       # starts Postgres + pgvector
 uv sync                    # installs dependencies (Python 3.12, via uv)
 uv run pytest              # smoke tests should pass without Jev or a live DB
 uv run ruff check .        # lint
+uv run python scripts/ingest.py         # pull filings from EDGAR
+uv run python scripts/tag_and_embed.py  # tag + embed into Postgres
+uv run uvicorn report_qa.app:app --reload   # serve POST /ask
 ```
 
-Retrieval, answering, and the demo UI require the phases below to be finished; right now this runs the scaffold and a `MockDecisionClient` standing in for Jev.
+```bash
+curl -s localhost:8000/ask -H 'content-type: application/json' -d '{
+  "question": "What does the company say about cybersecurity risk?",
+  "ticker": "AAPL", "fiscal_year": 2025
+}' | jq
+```
+
+The demo UI (Phase 5) isn't built yet, and relevance/groundedness verdicts still come from `MockDecisionClient`, not real Jev.
 
 ## Roadmap
 
 - [x] Project scaffold + local database
 - [x] EDGAR ingestion (Risk Factors + MD&A)
 - [x] Paragraph tagging + embeddings
-- [ ] Retrieval, answering, and verification
+- [x] Retrieval, answering, and verification
 - [ ] Evaluation on a hand-checked question set
 - [ ] Demo UI
 
@@ -82,6 +92,8 @@ Retrieval, answering, and the demo UI require the phases below to be finished; r
 - **Prose only.** Financial tables and statements aren't parsed yet.
 - **Small scope:** a handful of companies, for demonstration.
 - **Some filers structure their MD&A as a page-number pointer into a separate "wrap" section instead of writing it inline under Item 7** (seen in JPMorgan's and Chevron's 10-Ks). Ingestion doesn't follow that pointer, so such filers are left out of the MVP list rather than silently ingested with empty MD&A.
+- **The numeric check can false-flag a real number** if it's paraphrased rather than repeated verbatim in the cited paragraph (e.g. a year mentioned in the answer but not restated in the cited sentence). It's a substring heuristic, not semantic matching, so it errs toward flagging rather than missing a real hallucination.
+- **Relevance and groundedness verdicts are currently from `MockDecisionClient`**, not real Jev, so they're structurally correct (the gating logic works) but not yet semantically meaningful.
 
 ## Disclaimer
 
