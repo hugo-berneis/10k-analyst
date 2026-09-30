@@ -39,15 +39,18 @@ flowchart LR
 
 ## Results
 
-*To be filled in from real runs. No numbers are estimated.*
+*From `scripts/run_eval.py` against 20 human-approved gold questions and 10 deliberately-unsupported answer fixtures. No numbers are estimated. Full results: `eval/results.json`.*
 
 | Metric | Result |
 |---|---|
 | Filings / paragraphs processed | 12 filings (6 companies × 2 years) → 3,246 paragraphs |
-| Retrieval recall@5 (with vs. without Jev filter) | — |
-| Unsupported answers caught by the verification gate | — |
-| p95 latency per question | — |
-| Cost per question | — |
+| Retrieval recall@5 (with vs. without Jev filter) | 0.85 / 0.85 (identical for now — see note below) |
+| Fabricated numbers / hallucinated citations caught by the gate | 100% (7/7) — this check is plain code, not Jev, so it's real today |
+| Abstention rate / gate precision | 0.55 / 0.36 — not yet meaningful, see note below |
+| p50 / p95 latency per question | 2.1s / 4.0s |
+| Cost per question | $0.0025 (Claude Haiku 4.5) |
+
+Recall is identical with and without the Jev filter, and abstention/precision are noisy, because relevance and groundedness are still judged by `MockDecisionClient` — a deterministic stand-in with no real understanding of the text (see Limitations). The numeric-check and citation-hallucination results don't depend on Jev at all, so those are genuine.
 
 ## Tech stack
 
@@ -66,6 +69,7 @@ uv run ruff check .        # lint
 uv run python scripts/ingest.py         # pull filings from EDGAR
 uv run python scripts/tag_and_embed.py  # tag + embed into Postgres
 uv run uvicorn report_qa.app:app --reload   # serve POST /ask
+uv run python scripts/run_eval.py       # gold-question + unsupported-answer eval
 ```
 
 ```bash
@@ -83,7 +87,7 @@ The demo UI (Phase 5) isn't built yet, and relevance/groundedness verdicts still
 - [x] EDGAR ingestion (Risk Factors + MD&A)
 - [x] Paragraph tagging + embeddings
 - [x] Retrieval, answering, and verification
-- [ ] Evaluation on a hand-checked question set
+- [x] Evaluation on a hand-checked question set
 - [ ] Demo UI
 
 ## Limitations

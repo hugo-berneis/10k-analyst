@@ -1,0 +1,66 @@
+# Deliberately wrong answers, paired with real context, to test the
+# groundedness gate (answer/groundedness.py). Per CLAUDE.md: "build a set
+# of deliberately unsupported answers to test the gate."
+#
+# Categories:
+#   fabricated_number    -- a number the source never said. Caught by
+#                           plain-code numeric_check, deterministically,
+#                           regardless of Jev.
+#   hallucinated_citation -- cites a paragraph ID that isn't in context.
+#                           Caught by plain-code citation resolution,
+#                           deterministically, regardless of Jev.
+#   unsupported_claim    -- no bad number or citation, but the claim
+#                           contradicts or isn't supported by the cited
+#                           text. Only a real semantic groundedness check
+#                           can catch this -- MockDecisionClient's verdict
+#                           here is not meaningful, only structural.
+
+- id: 1
+  category: fabricated_number
+  context_paragraph_ids: ["AAPL-2025-mdna-43"]
+  fake_answer: "Apple repurchased $500 billion of its common stock during 2025 [AAPL-2025-mdna-43]."
+
+- id: 2
+  category: fabricated_number
+  context_paragraph_ids: ["MSFT-2026-mdna-69"]
+  fake_answer: "Microsoft's gross margin increased by 45% [MSFT-2026-mdna-69]."
+
+- id: 3
+  category: fabricated_number
+  context_paragraph_ids: ["WMT-2026-mdna-35"]
+  fake_answer: "Walmart's return on assets was 15.3% in fiscal 2026 [WMT-2026-mdna-35]."
+
+- id: 4
+  category: fabricated_number
+  context_paragraph_ids: ["KO-2025-mdna-197"]
+  fake_answer: "Coca-Cola reports $9,999 million in liabilities for unrecognized tax benefits [KO-2025-mdna-197]."
+
+- id: 5
+  category: hallucinated_citation
+  context_paragraph_ids: ["V-2025-mdna-22"]
+  fake_answer: "Visa recorded severance costs during fiscal 2025 [V-2025-mdna-22] and also disclosed a major restatement of prior-year earnings [V-2025-mdna-9999]."
+
+- id: 6
+  category: hallucinated_citation
+  context_paragraph_ids: ["PFE-2025-risk_factors-31"]
+  fake_answer: "Pfizer's products are prime targets for counterfeiters [PFE-2025-risk_factors-31], and the company also disclosed a major data breach in 2025 [PFE-2025-risk_factors-9999]."
+
+- id: 7
+  category: hallucinated_citation
+  context_paragraph_ids: ["MSFT-2026-risk_factors-62"]
+  fake_answer: "Microsoft faces datacenter component supply constraints [MSFT-2026-risk_factors-62], similar to the liquidity risk JPMorgan disclosed [JPM-2025-mdna-1]."
+
+- id: 8
+  category: unsupported_claim
+  context_paragraph_ids: ["KO-2025-risk_factors-18"]
+  fake_answer: "Coca-Cola faces no energy-related risks to its operations or its bottlers' operations [KO-2025-risk_factors-18]."
+
+- id: 9
+  category: unsupported_claim
+  context_paragraph_ids: ["V-2025-risk_factors-21"]
+  fake_answer: "Visa faces no competitive barriers anywhere from government regulations protecting domestic payment providers [V-2025-risk_factors-21]."
+
+- id: 10
+  category: unsupported_claim
+  context_paragraph_ids: ["AAPL-2025-risk_factors-33"]
+  fake_answer: "Apple builds inventory without making any advance manufacturing purchase commitments [AAPL-2025-risk_factors-33]."

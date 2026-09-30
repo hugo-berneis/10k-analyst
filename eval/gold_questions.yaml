@@ -1,0 +1,124 @@
+# Human-approved gold question set for Phase 4 evaluation (20 of the 30
+# candidates in candidate_questions.yaml). Only these count as gold --
+# per CLAUDE.md, Claude drafts candidates, Hugo approves what's gold.
+# Approved 2026-09-30.
+
+- id: 1
+  ticker: AAPL
+  fiscal_year: 2025
+  question: "What share repurchase program did Apple announce in May 2025, and how much stock did it repurchase during 2025?"
+  gold_paragraph_ids: ["AAPL-2025-mdna-43"]
+
+- id: 2
+  ticker: AAPL
+  fiscal_year: 2025
+  question: "How does Apple describe the impact of adverse macroeconomic conditions like inflation and higher interest rates on its business?"
+  gold_paragraph_ids: ["AAPL-2025-risk_factors-4"]
+
+- id: 4
+  ticker: AAPL
+  fiscal_year: 2025
+  question: "How far in advance does Apple typically make manufacturing purchase obligations for components?"
+  gold_paragraph_ids: ["AAPL-2025-risk_factors-33"]
+
+- id: 6
+  ticker: MSFT
+  fiscal_year: 2026
+  question: "By how much did Microsoft's gross margin increase, and what drove the increase?"
+  gold_paragraph_ids: ["MSFT-2026-mdna-69"]
+
+- id: 7
+  ticker: MSFT
+  fiscal_year: 2026
+  question: "How does Microsoft describe competition from companies that distribute open-source software or open AI models?"
+  gold_paragraph_ids: ["MSFT-2026-risk_factors-14"]
+
+- id: 8
+  ticker: MSFT
+  fiscal_year: 2026
+  question: "What supply problem does Microsoft describe regarding datacenter components?"
+  gold_paragraph_ids: ["MSFT-2026-risk_factors-62"]
+
+- id: 11
+  ticker: V
+  fiscal_year: 2025
+  question: "What did Visa record severance costs for during fiscal 2025?"
+  gold_paragraph_ids: ["V-2025-mdna-22"]
+
+- id: 13
+  ticker: V
+  fiscal_year: 2025
+  question: "What does Visa say about its historical practice of setting default interchange reimbursement fees (IRFs)?"
+  gold_paragraph_ids: ["V-2025-risk_factors-4"]
+
+- id: 15
+  ticker: V
+  fiscal_year: 2025
+  question: "How do some governments protect domestic payments providers from international competition, according to Visa?"
+  gold_paragraph_ids: ["V-2025-risk_factors-21"]
+
+- id: 16
+  ticker: KO
+  fiscal_year: 2025
+  question: "What were Coca-Cola's total other operating charges in 2024, and what was the largest component?"
+  gold_paragraph_ids: ["KO-2025-mdna-119"]
+
+- id: 17
+  ticker: KO
+  fiscal_year: 2025
+  question: "What are Coca-Cola's current payment terms with the majority of its suppliers?"
+  gold_paragraph_ids: ["KO-2025-mdna-149"]
+
+- id: 19
+  ticker: KO
+  fiscal_year: 2025
+  question: "What energy-related risk does Coca-Cola describe regarding its and its bottlers' operations?"
+  gold_paragraph_ids: ["KO-2025-risk_factors-18"]
+
+- id: 20
+  ticker: KO
+  fiscal_year: 2025
+  question: "How much does Coca-Cola report in liabilities for unrecognized tax benefits?"
+  gold_paragraph_ids: ["KO-2025-mdna-197"]
+
+- id: 22
+  ticker: PFE
+  fiscal_year: 2025
+  question: "What risk does Pfizer describe regarding counterfeiting of its medicines and vaccines?"
+  gold_paragraph_ids: ["PFE-2025-risk_factors-31"]
+
+- id: 23
+  ticker: PFE
+  fiscal_year: 2025
+  question: "What must pharmaceutical manufacturers track and disclose regarding interactions with healthcare professionals, according to Pfizer's risk factors?"
+  gold_paragraph_ids: ["PFE-2025-risk_factors-61"]
+
+- id: 24
+  ticker: PFE
+  fiscal_year: 2025
+  question: "What legal-related charge was included in Pfizer's 2023 adjustments related to its Haleon investee capital transactions?"
+  gold_paragraph_ids: ["PFE-2025-mdna-257"]
+
+- id: 26
+  ticker: WMT
+  fiscal_year: 2026
+  question: "What was Walmart's return on assets (ROA) for fiscal 2026 and fiscal 2025?"
+  gold_paragraph_ids: ["WMT-2026-mdna-35"]
+
+- id: 27
+  ticker: WMT
+  fiscal_year: 2026
+  question: "How much did Walmart spend on share repurchases in fiscal 2026, and how did that compare to the prior year?"
+  gold_paragraph_ids: ["WMT-2026-mdna-106"]
+
+- id: 28
+  ticker: WMT
+  fiscal_year: 2026
+  question: "What cybersecurity risk does Walmart describe regarding third-party service providers?"
+  gold_paragraph_ids: ["WMT-2026-risk_factors-54"]
+
+- id: 29
+  ticker: WMT
+  fiscal_year: 2026
+  question: "What compliance risk does Walmart describe regarding its associates or agents in foreign countries?"
+  gold_paragraph_ids: ["WMT-2026-risk_factors-82"]
