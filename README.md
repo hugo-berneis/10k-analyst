@@ -43,7 +43,7 @@ flowchart LR
 
 | Metric | Result |
 |---|---|
-| Filings / paragraphs processed | — |
+| Filings / paragraphs processed | 12 filings (6 companies × 2 years) → 3,246 paragraphs |
 | Retrieval recall@5 (with vs. without Jev filter) | — |
 | Unsupported answers caught by the verification gate | — |
 | p95 latency per question | — |
@@ -70,7 +70,7 @@ Retrieval, answering, and the demo UI require the phases below to be finished; r
 ## Roadmap
 
 - [ ] Project scaffold + local database
-- [ ] EDGAR ingestion (Risk Factors + MD&A)
+- [x] EDGAR ingestion (Risk Factors + MD&A)
 - [ ] Paragraph tagging + embeddings
 - [ ] Retrieval, answering, and verification
 - [ ] Evaluation on a hand-checked question set
@@ -81,6 +81,7 @@ Retrieval, answering, and the demo UI require the phases below to be finished; r
 - **Catches hallucinations; doesn't eliminate them.** The verification step reduces unsupported answers, and the evaluation measures how many still slip through.
 - **Prose only.** Financial tables and statements aren't parsed yet.
 - **Small scope:** a handful of companies, for demonstration.
+- **Some filers structure their MD&A as a page-number pointer into a separate "wrap" section instead of writing it inline under Item 7** (seen in JPMorgan's and Chevron's 10-Ks). Ingestion doesn't follow that pointer, so such filers are left out of the MVP list rather than silently ingested with empty MD&A.
 
 ## Disclaimer
 

@@ -1,0 +1,13 @@
+# MVP company list for ingestion (Phase 1). One sector each, all file
+# clean HTML 10-Ks on EDGAR. `filings_per_company` counts backwards from
+# each company's most recent 10-K rather than pinning fiscal years, since
+# fiscal year-end dates and filing dates vary by company.
+filings_per_company: 2
+
+tickers:
+  - AAPL
+  - MSFT
+  - V
+  - KO
+  - PFE
+  - WMT

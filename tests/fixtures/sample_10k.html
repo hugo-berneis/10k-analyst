@@ -1,0 +1,51 @@
+<!--
+A synthetic 10-K built to exercise the extraction heuristics in
+report_qa.ingest.sections, not a real filing. It bakes in the three quirks
+found in real EDGAR documents during Phase 1:
+  - a table of contents that repeats every "Item N" label close together
+  - a running page header that repeats "Item 1A" throughout the section body
+    (seen in Microsoft's 10-K)
+  - a real heading whose title is split into a separate tag from its label
+    (seen in Walmart's and Pfizer's 10-Ks), and Item 1B missing entirely from
+    the body in favor of Item 1C (seen in Pfizer's 10-K)
+-->
+<html>
+<body>
+<div>Table of Contents</div>
+<div>Item 1</div><div>Business</div>
+<div>Item 1A</div><div>Risk Factors</div>
+<div>Item 1C</div><div>Cybersecurity</div>
+<div>Item 7</div><div>Management's Discussion and Analysis</div>
+<div>Item 7A</div><div>Market Risk</div>
+<div>Item 8</div><div>Financial Statements</div>
+
+<div>Item 1.</div>
+<div>Business</div>
+<p>Sample Co. designs, manufactures, and markets widgets worldwide through retail and wholesale channels.</p>
+
+<div>Item 1A</div>
+<p>Risk Factors</p>
+<p>The following summarizes factors that could have a material adverse effect on the Company's business and results of operations.</p>
+<div>Item 1A</div>
+<p>Demand for the Company's products depends significantly on global economic conditions and can be adversely affected by downturns.</p>
+<div>Item 1A</div>
+<p>The Company depends on suppliers, some of whom are single-sourced, and disruption to their operations could harm the Company's business.</p>
+<p>Co. | 2025 Form 10-K | 5</p>
+<div>Item 1A</div>
+<p>The Company's business is subject to intense competition and rapid technological change in all of its markets.</p>
+
+<div>Item 1C.</div>
+<div>Cybersecurity</div>
+<p>The Company maintains a cybersecurity risk management program overseen by the board of directors.</p>
+
+<div>Item 7.</div>
+<div>Management's Discussion and Analysis of Financial Condition and Results of Operations</div>
+<p>The following discussion should be read together with the consolidated financial statements included elsewhere in this report.</p>
+<p>Net sales increased year over year, driven primarily by growth in the Company's services segment and international markets.</p>
+<p>Gross margin was affected by product mix, commodity costs, and foreign currency movements during the period.</p>
+
+<div>Item 7A.</div>
+<div>Quantitative and Qualitative Disclosures About Market Risk</div>
+<p>The Company is exposed to market risk from changes in interest rates, foreign currency rates, and commodity prices.</p>
+</body>
+</html>
