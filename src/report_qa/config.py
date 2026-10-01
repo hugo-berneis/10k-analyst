@@ -28,7 +28,8 @@ class Settings(BaseSettings):
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
 
     jev_api_key: str = ""
-    jev_base_url: str = ""
+    jev_base_url: str = "https://api.typesafe.ai"
+    jev_model: str = "jev-latest"
 
 
 @lru_cache

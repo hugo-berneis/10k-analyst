@@ -10,8 +10,9 @@ random between runs.
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Mapping
 
-from report_qa.decision import Decision
+from report_qa.decision import ChoiceQuestion, Decision, NoulQuestion, Question, ScoreQuestion
 
 
 def _stable_unit_interval(*parts: str) -> float:
@@ -32,10 +33,26 @@ class MockDecisionClient:
         index = int(_stable_unit_interval(state, question, "choice") * len(options))
         return Decision(value=options[min(index, len(options) - 1)], confidence=self.confidence)
 
-    def score(self, state: str, question: str) -> Decision:
-        value = _stable_unit_interval(state, question, "score")
+    def score(self, state: str, question: str, criteria: list[str]) -> Decision:
+        if not criteria:
+            raise ValueError("score() requires at least one criterion")
+        value = _stable_unit_interval(state, question, "score", str(len(criteria)))
         return Decision(value=value, confidence=self.confidence)
 
     def noul(self, state: str, question: str) -> Decision:
         value = _stable_unit_interval(state, question, "noul") >= 0.5
         return Decision(value=value, confidence=self.confidence)
+
+    def ask_many(self, state: str, questions: Mapping[str, Question]) -> dict[str, Decision]:
+        """No real batching to gain here -- just answers each one locally."""
+        answers = {}
+        for key, q in questions.items():
+            if isinstance(q, ChoiceQuestion):
+                answers[key] = self.choice(state, q.question, q.options)
+            elif isinstance(q, ScoreQuestion):
+                answers[key] = self.score(state, q.question, q.criteria)
+            elif isinstance(q, NoulQuestion):
+                answers[key] = self.noul(state, q.question)
+            else:
+                raise TypeError(f"Unknown question type: {type(q)!r}")
+        return answers

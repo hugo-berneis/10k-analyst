@@ -28,7 +28,7 @@ from report_qa.answer.numeric_check import find_unsupported_numbers
 from report_qa.answer.pipeline import ask
 from report_qa.config import get_settings
 from report_qa.db import connect, init_schema
-from report_qa.decision_mock import MockDecisionClient
+from report_qa.decision import get_decision_client
 from report_qa.retrieval.relevance import filter_relevance
 from report_qa.retrieval.search import RetrievedParagraph, search
 from report_qa.tagging.embeddings import Embedder
@@ -190,7 +190,7 @@ def summarize(
         )
         if code_verifiable
         else None,
-        "gate_recall_semantic_not_meaningful_with_mock": round(
+        "gate_recall_semantic": round(
             sum(r["caught"] for r in semantic_only) / len(semantic_only), 3
         )
         if semantic_only
@@ -205,14 +205,17 @@ def summarize(
     }
 
 
-def print_table(summary: dict) -> None:
+def print_table(summary: dict, *, using_mock: bool) -> None:
     print("\n=== Phase 4 Evaluation ===")
     for key, value in summary.items():
         print(f"{key:45s} {value}")
     print()
-    print("Note: gate_recall_semantic is not meaningful yet -- it reflects")
-    print("MockDecisionClient's arbitrary judgments, not real semantic")
-    print("groundedness checking. Re-run once real Jev is wired in.")
+    if using_mock:
+        print("Note: gate_recall_semantic is not meaningful yet -- it reflects")
+        print("MockDecisionClient's arbitrary judgments, not real semantic")
+        print("groundedness checking. Set JEV_API_KEY and re-run for real numbers.")
+    else:
+        print("Note: run against real Jev -- all metrics reflect real judgments.")
 
 
 def main() -> None:
@@ -220,7 +223,7 @@ def main() -> None:
     conn = connect(settings.database_url)
     init_schema(conn)
     embedder = Embedder(settings.embedding_model)
-    client = MockDecisionClient()
+    client = get_decision_client(settings)
     llm = AnswerLLM(settings.anthropic_api_key, settings.anthropic_model)
     thresholds = load_thresholds()
 
@@ -238,7 +241,7 @@ def main() -> None:
         paragraphs_tagged = cur.fetchone()[0]
 
     summary = summarize(gold_records, fixture_records, paragraphs_tagged)
-    print_table(summary)
+    print_table(summary, using_mock=not settings.jev_api_key)
 
     RESULTS_PATH.parent.mkdir(parents=True, exist_ok=True)
     RESULTS_PATH.write_text(

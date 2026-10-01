@@ -44,9 +44,43 @@ def test_tag_paragraph_is_deterministic_for_the_same_text() -> None:
 def test_tag_paragraphs_tags_every_paragraph_in_order() -> None:
     client = MockDecisionClient()
     paragraphs = [_paragraph(f"Risk factor number {i}") for i in range(5)]
-    tags = tag_paragraphs(client, paragraphs, TOPICS, batch_size=2)
-    assert len(tags) == 5
-    assert all(isinstance(t, Tag) for t in tags)
+    tagged = tag_paragraphs(client, paragraphs, TOPICS, batch_size=2)
+    assert len(tagged) == 5
+    assert [p for p, _ in tagged] == paragraphs
+    assert all(isinstance(t, Tag) for _, t in tagged)
+
+
+def test_tag_paragraphs_skips_a_paragraph_that_fails_without_losing_the_rest() -> None:
+    # Fails deterministically on one specific paragraph's state, rather than
+    # on "the Nth call" -- tag_paragraphs runs concurrently, so call order
+    # across paragraphs isn't guaranteed.
+    class FlakyClient:
+        def __init__(self, mock: MockDecisionClient, fail_state: str) -> None:
+            self._mock = mock
+            self._fail_state = fail_state
+
+        def ask_many(self, state, questions):  # noqa: ANN001
+            if state == self._fail_state:
+                raise RuntimeError("simulated transient failure")
+            return self._mock.ask_many(state, questions)
+
+        def choice(self, state, question, options):  # noqa: ANN001, ARG002
+            return self._mock.choice(state, question, options)
+
+        def score(self, state, question, criteria):  # noqa: ANN001, ARG002
+            return self._mock.score(state, question, criteria)
+
+        def noul(self, state, question):  # noqa: ANN001, ARG002
+            return self._mock.noul(state, question)
+
+    paragraphs = [_paragraph(f"Risk factor number {i}") for i in range(3)]
+    client = FlakyClient(MockDecisionClient(), fail_state=paragraphs[1].text)
+    tagged = tag_paragraphs(client, paragraphs, TOPICS)
+
+    assert [p.paragraph_id for p, _ in tagged] == [
+        paragraphs[0].paragraph_id,
+        paragraphs[2].paragraph_id,
+    ]
 
 
 def test_load_topics_returns_the_configured_labels() -> None:

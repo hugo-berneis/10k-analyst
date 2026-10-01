@@ -15,7 +15,7 @@ from report_qa.answer.llm import AnswerLLM
 from report_qa.answer.pipeline import ask as run_ask
 from report_qa.config import get_settings
 from report_qa.db import connect, init_schema
-from report_qa.decision_mock import MockDecisionClient
+from report_qa.decision import get_decision_client
 from report_qa.tagging.embeddings import Embedder
 from report_qa.thresholds import load_thresholds
 
@@ -59,8 +59,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     app.state.conn = conn
     app.state.embedder = Embedder(settings.embedding_model)
-    # No real Jev client yet -- see CLAUDE.md's Jev rules.
-    app.state.decision_client = MockDecisionClient()
+    app.state.decision_client = get_decision_client(settings)
     app.state.llm = AnswerLLM(settings.anthropic_api_key, settings.anthropic_model)
     app.state.thresholds = load_thresholds()
     yield

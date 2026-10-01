@@ -36,13 +36,14 @@ flowchart LR
 | Metric | Result |
 |---|---|
 | Filings / paragraphs processed | 12 filings (6 companies × 2 years) → 3,246 paragraphs |
-| Retrieval recall@5 (with vs. without Jev filter) | 0.85 / 0.85 (identical for now — see note below) |
-| Fabricated numbers / hallucinated citations caught by the gate | 100% (7/7) — this check is plain code, not Jev, so it's real today |
-| Abstention rate / gate precision | 0.55 / 0.36 — not yet meaningful, see note below |
-| p50 / p95 latency per question | 2.1s / 4.0s |
-| Cost per question | $0.0025 (Claude Haiku 4.5) |
+| Retrieval recall@5 (with vs. without Jev filter) | 0.85 / 0.85 |
+| Fabricated numbers / hallucinated citations caught by the gate | 100% (7/7) |
+| Unsupported claims caught by Jev's groundedness check (no numeric/citation issue) | 100% (3/3) |
+| Abstention rate / gate precision | 0.05 / 0.40 |
+| p50 / p95 latency per question | 3.9s / 5.4s |
+| Cost per question | $0.0018 (Claude Haiku 4.5) |
 
-Recall is identical with and without the Jev filter, and abstention/precision are noisy, because relevance and groundedness are still judged by `MockDecisionClient` — a deterministic stand-in with no real understanding of the text (see Limitations). The numeric-check and citation-hallucination results don't depend on Jev at all, so those are genuine.
+All numbers are from a real run against real Jev (TypeSafe), not `MockDecisionClient`. Every deliberately-unsupported test case was caught — both the kind plain code can verify (fabricated numbers, citations to paragraphs that don't exist) and the kind that requires real semantic judgment (a claim that contradicts its own cited source). Gate precision (0.40) reflects something genuinely worth knowing for anyone tuning this further: most good answers land as "flagged" rather than "confident" — the `groundedness_threshold` (`config/thresholds.yaml`) is conservative out of the box and is an explicit target for calibration, not a bug.
 
 ## Tech stack
 
@@ -93,7 +94,7 @@ curl -s localhost:8000/ask -H 'content-type: application/json' -d '{
 uv run python scripts/run_eval.py
 ```
 
-Relevance and groundedness verdicts currently come from `MockDecisionClient`, not real Jev — see Limitations.
+Uses real Jev if `JEV_API_KEY` is set in `.env`, otherwise falls back to a deterministic `MockDecisionClient` automatically (see `report_qa.decision.get_decision_client`).
 
 ## Roadmap
 
@@ -111,8 +112,9 @@ Relevance and groundedness verdicts currently come from `MockDecisionClient`, no
 - **Small scope:** a handful of companies, for demonstration.
 - **Some filers structure their MD&A as a page-number pointer into a separate "wrap" section instead of writing it inline under Item 7** (seen in JPMorgan's and Chevron's 10-Ks). Ingestion doesn't follow that pointer, so such filers are left out of the MVP list rather than silently ingested with empty MD&A.
 - **The numeric check can false-flag a real number** if it's paraphrased rather than repeated verbatim in the cited paragraph (e.g. a year mentioned in the answer but not restated in the cited sentence). It's a substring heuristic, not semantic matching, so it errs toward flagging rather than missing a real hallucination.
-- **Relevance and groundedness verdicts are currently from `MockDecisionClient`**, not real Jev, so they're structurally correct (the gating logic works) but not yet semantically meaningful.
 - **Jev itself is weak at numbers, counting, dates, and literal reading** — that's a known property of the model, not a bug. It's why this architecture never asks Jev to do arithmetic: Jev only ever picks from a fixed option list or returns a bounded score, and every number in an answer is checked by plain code (`answer/numeric_check.py`) instead.
+- **The groundedness gate is conservative out of the box.** Most grounded, correctly-cited answers land as "flagged" rather than "confident" with the default `groundedness_threshold` (see Results) — tune `config/thresholds.yaml` against your own data before trusting the "confident" bucket alone.
+- **Without `JEV_API_KEY` set, the whole pipeline still runs end-to-end** via `MockDecisionClient`, a deterministic stand-in with no real understanding of the text — useful for development, but its verdicts aren't meaningful.
 
 ## Disclaimer
 

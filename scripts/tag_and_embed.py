@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Tags and embeds `data/processed/paragraphs.jsonl`, then stores it in Postgres.
 
-Uses `MockDecisionClient` for tagging -- there's no real Jev client yet
-(see CLAUDE.md's Jev rules). Swapping in the real client later only means
-changing the one line that constructs `client` below.
+Uses real Jev if `JEV_API_KEY` is set, otherwise `MockDecisionClient`
+(see `report_qa.decision.get_decision_client`).
 
 Usage:
     uv run scripts/tag_and_embed.py
@@ -19,7 +18,7 @@ from pathlib import Path
 
 from report_qa.config import get_settings
 from report_qa.db import TaggedParagraphRow, connect, init_schema, upsert_paragraphs
-from report_qa.decision_mock import MockDecisionClient
+from report_qa.decision import get_decision_client
 from report_qa.ingest.sections import Paragraph
 from report_qa.tagging.embeddings import Embedder
 from report_qa.tagging.tagger import tag_paragraphs
@@ -61,11 +60,13 @@ def main() -> None:
     topics = load_topics()
     print(f"Loaded {len(paragraphs)} paragraphs, {len(topics)} topic labels")
 
-    client = MockDecisionClient()
-    tags = tag_paragraphs(client, paragraphs, topics)
+    client = get_decision_client(settings)
+    tagged = tag_paragraphs(client, paragraphs, topics)
+    if len(tagged) < len(paragraphs):
+        print(f"Warning: {len(paragraphs) - len(tagged)} paragraphs failed to tag and were skipped")
 
     embedder = Embedder(settings.embedding_model)
-    embeddings = embedder.embed([p.text for p in paragraphs])
+    embeddings = embedder.embed([p.text for p, _ in tagged])
 
     rows = [
         TaggedParagraphRow(
@@ -82,7 +83,7 @@ def main() -> None:
             tone_confidence=tag.tone_confidence,
             embedding=embedding,
         )
-        for p, tag, embedding in zip(paragraphs, tags, embeddings, strict=True)
+        for (p, tag), embedding in zip(tagged, embeddings, strict=True)
     ]
 
     conn = connect(settings.database_url)

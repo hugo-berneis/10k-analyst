@@ -12,7 +12,7 @@ from report_qa.answer.llm import AnswerLLM
 from report_qa.answer.pipeline import ask
 from report_qa.config import get_settings
 from report_qa.db import connect, init_schema
-from report_qa.decision_mock import MockDecisionClient
+from report_qa.decision import get_decision_client
 from report_qa.tagging.embeddings import Embedder
 from report_qa.thresholds import load_thresholds
 
@@ -31,7 +31,7 @@ def get_resources():
     return {
         "conn": conn,
         "embedder": Embedder(settings.embedding_model),
-        "decision_client": MockDecisionClient(),
+        "decision_client": get_decision_client(settings),
         "llm": AnswerLLM(settings.anthropic_api_key, settings.anthropic_model),
         "thresholds": load_thresholds(),
     }

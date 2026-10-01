@@ -21,7 +21,9 @@ def test_mock_choice_returns_one_of_the_options() -> None:
 
 def test_mock_score_is_bounded() -> None:
     client = MockDecisionClient()
-    decision = client.score("some paragraph", "How negative is the tone?")
+    decision = client.score(
+        "some paragraph", "How negative is the tone?", ["mild", "moderate", "severe"]
+    )
     assert 0.0 <= decision.value <= 1.0
 
 
