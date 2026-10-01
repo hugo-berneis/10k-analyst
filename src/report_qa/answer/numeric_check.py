@@ -11,15 +11,22 @@ from report_qa.answer.citations import CITATION_PATTERN
 
 _NUMBER_PATTERN = re.compile(r"\$?\d[\d,]*(?:\.\d+)?%?")
 
+# SEC filing-type names, not figures -- "Apple's 10-K filing" shouldn't flag
+# "10" as an unsupported number. Found live via the Streamlit demo: the LLM
+# referenced "10-K" in an answer and the plain digit-matching regex above
+# had no way to know it wasn't a financial figure.
+_FORM_TYPE_PATTERN = re.compile(r"\b(10-K|10-Q|8-K|6-K|20-F|S-1|S-3|S-4)\b", re.IGNORECASE)
+
 
 def _normalize(number: str) -> str:
     return number.replace(",", "").replace("$", "").replace("%", "")
 
 
 def extract_numbers(text: str) -> list[str]:
-    """Numeric tokens in `text`, excluding the index inside [paragraph_id] citations."""
+    """Numeric tokens in `text`, excluding citation indices and SEC form-type names."""
     without_citations = CITATION_PATTERN.sub("", text)
-    return [_normalize(match) for match in _NUMBER_PATTERN.findall(without_citations)]
+    without_form_types = _FORM_TYPE_PATTERN.sub("", without_citations)
+    return [_normalize(match) for match in _NUMBER_PATTERN.findall(without_form_types)]
 
 
 def find_unsupported_numbers(answer_text: str, cited_text: str) -> list[str]:

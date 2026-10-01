@@ -77,6 +77,11 @@ def test_find_unsupported_numbers_catches_a_fabricated_figure() -> None:
     assert find_unsupported_numbers(answer, source) == ["9999"]
 
 
+def test_extract_numbers_ignores_sec_form_type_names() -> None:
+    text = "I would need excerpts from Apple's 10-K filing, their 10-Q, or an 8-K."
+    assert extract_numbers(text) == []
+
+
 def test_find_unsupported_numbers_empty_when_all_numbers_match() -> None:
     answer = "Revenue grew 6% to $391 billion [AAPL-2025-mdna-3]."
     source = "Revenue increased 6% to $391 billion compared to the prior year."

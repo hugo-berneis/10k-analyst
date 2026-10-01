@@ -4,15 +4,7 @@
 
 ## The idea
 
-Most "AI for investing" tools hand a filing to a chatbot and hope the answer is right. That's a problem in finance, where one made up number can mislead an entire analysis.
-
-I wanted to try a different approach, splitting the work the way people think:
-
-- **Fast, bounded judgments** (*Is this paragraph about liquidity risk? Is this passage relevant to the question? Is this answer supported by the source?*) go to **Jev**, a new kind of "System One" decision model. It returns typed answers with a confidence score, runs cheaply enough to use on every paragraph, and can never answer outside the options it's given.
-- **Slow, open-ended work** (writing a clear, cited answer) goes to an **LLM**.
-- **Anything numeric** gets checked by **plain code**, because neither model should be trusted with arithmetic.
-
-The result is a pipeline where every step either shows its confidence or shows its work, and low-confidence answers get flagged instead of presented as fact.
+Most "AI for investing" tools hand a filing to a chatbot and hope the answer is right — risky in finance, where one made-up number can mislead an entire analysis. This project splits the work instead: fast, bounded judgments (*is this paragraph relevant? is this answer grounded?*) go to **Jev**, a confidence-scored "System One" decision model that can never answer outside the options it's given; open-ended writing goes to an **LLM**, which must cite the paragraphs it used; and every number in the answer is checked against the source text by **plain code**, since neither model should be trusted with arithmetic. The result is a pipeline where every step either shows its confidence or shows its work, and low-confidence answers get flagged instead of presented as fact.
 
 ## How it works
 
@@ -58,6 +50,10 @@ Python · FastAPI · PostgreSQL + pgvector · sentence-transformers · Jev (Type
 
 ## Getting started
 
+Requires [Docker](https://www.docker.com/) and [uv](https://docs.astral.sh/uv/) installed first; `uv` installs the pinned Python 3.12 itself. You'll also need an [Anthropic API key](https://console.anthropic.com/).
+
+**1. Setup and data pipeline:**
+
 ```bash
 git clone https://github.com/<your-username>/10k-analyst.git
 cd 10k-analyst
@@ -68,8 +64,20 @@ uv run pytest              # smoke tests should pass without Jev or a live DB
 uv run ruff check .        # lint
 uv run python scripts/ingest.py         # pull filings from EDGAR
 uv run python scripts/tag_and_embed.py  # tag + embed into Postgres
-uv run uvicorn report_qa.app:app --reload   # serve POST /ask
-uv run python scripts/run_eval.py       # gold-question + unsupported-answer eval
+```
+
+**2. Try it — demo UI:**
+
+```bash
+uv run streamlit run streamlit_app.py
+```
+
+Opens at `http://localhost:8501`. Ask a question, pick an optional ticker/year/section, and see the answer, citations, verdict, and which retrieved chunks were kept or dropped and why.
+
+**3. Or hit the API directly:**
+
+```bash
+uv run uvicorn report_qa.app:app --reload
 ```
 
 ```bash
@@ -79,7 +87,13 @@ curl -s localhost:8000/ask -H 'content-type: application/json' -d '{
 }' | jq
 ```
 
-The demo UI (Phase 5) isn't built yet, and relevance/groundedness verdicts still come from `MockDecisionClient`, not real Jev.
+**4. Reproduce the results table:**
+
+```bash
+uv run python scripts/run_eval.py
+```
+
+Relevance and groundedness verdicts currently come from `MockDecisionClient`, not real Jev — see Limitations.
 
 ## Roadmap
 
@@ -88,7 +102,7 @@ The demo UI (Phase 5) isn't built yet, and relevance/groundedness verdicts still
 - [x] Paragraph tagging + embeddings
 - [x] Retrieval, answering, and verification
 - [x] Evaluation on a hand-checked question set
-- [ ] Demo UI
+- [x] Demo UI
 
 ## Limitations
 
@@ -98,6 +112,7 @@ The demo UI (Phase 5) isn't built yet, and relevance/groundedness verdicts still
 - **Some filers structure their MD&A as a page-number pointer into a separate "wrap" section instead of writing it inline under Item 7** (seen in JPMorgan's and Chevron's 10-Ks). Ingestion doesn't follow that pointer, so such filers are left out of the MVP list rather than silently ingested with empty MD&A.
 - **The numeric check can false-flag a real number** if it's paraphrased rather than repeated verbatim in the cited paragraph (e.g. a year mentioned in the answer but not restated in the cited sentence). It's a substring heuristic, not semantic matching, so it errs toward flagging rather than missing a real hallucination.
 - **Relevance and groundedness verdicts are currently from `MockDecisionClient`**, not real Jev, so they're structurally correct (the gating logic works) but not yet semantically meaningful.
+- **Jev itself is weak at numbers, counting, dates, and literal reading** — that's a known property of the model, not a bug. It's why this architecture never asks Jev to do arithmetic: Jev only ever picks from a fixed option list or returns a bounded score, and every number in an answer is checked by plain code (`answer/numeric_check.py`) instead.
 
 ## Disclaimer
 
