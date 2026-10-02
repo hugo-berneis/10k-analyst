@@ -17,9 +17,9 @@ from report_qa.tagging.embeddings import Embedder
 from report_qa.thresholds import load_thresholds
 
 VERDICT_DISPLAY = {
-    "confident": ("✅", st.success),
-    "flagged": ("⚠️", st.warning),
-    "abstained": ("⛔", st.error),
+    "confident": st.success,
+    "flagged": st.warning,
+    "abstained": st.error,
 }
 
 
@@ -47,7 +47,7 @@ def get_filter_options(_conn):
     return tickers, years
 
 
-st.set_page_config(page_title="10k-analyst", page_icon="📊")
+st.set_page_config(page_title="10k-analyst")
 st.title("10k-analyst")
 st.caption(
     "Ask a question about a company's SEC 10-K risk factors or MD&A. "
@@ -57,11 +57,33 @@ st.caption(
 resources = get_resources()
 tickers, years = get_filter_options(resources["conn"])
 
+EXAMPLE_QUESTION = "What does JPMorgan say about cybersecurity risk?"
+EXAMPLE_TICKER = "JPM"
+EXAMPLE_FISCAL_YEAR = 2025
+
+ticker_options = ["Any", *tickers]
+fiscal_year_options = ["Any", *years]
+default_ticker_index = (
+    ticker_options.index(EXAMPLE_TICKER) if EXAMPLE_TICKER in ticker_options else 0
+)
+default_fiscal_year_index = (
+    fiscal_year_options.index(EXAMPLE_FISCAL_YEAR)
+    if EXAMPLE_FISCAL_YEAR in fiscal_year_options
+    else 0
+)
+
 with st.form("ask_form"):
-    question = st.text_input("Question", placeholder="What does the company say about...")
+    question = st.text_input(
+        "Question",
+        value=EXAMPLE_QUESTION,
+        placeholder="What does the company say about...",
+    )
+    st.caption(f"Example shown above: {EXAMPLE_TICKER}, fiscal year {EXAMPLE_FISCAL_YEAR}")
     col1, col2, col3 = st.columns(3)
-    ticker = col1.selectbox("Ticker", ["Any", *tickers])
-    fiscal_year = col2.selectbox("Fiscal year", ["Any", *years])
+    ticker = col1.selectbox("Ticker", ticker_options, index=default_ticker_index)
+    fiscal_year = col2.selectbox(
+        "Fiscal year", fiscal_year_options, index=default_fiscal_year_index
+    )
     section = col3.selectbox("Section", ["Any", "risk_factors", "mdna"])
     submitted = st.form_submit_button("Ask")
 
@@ -79,8 +101,8 @@ if submitted and question:
             section=None if section == "Any" else section,
         )
 
-    icon, verdict_fn = VERDICT_DISPLAY[result.verdict.value]
-    verdict_fn(f"{icon} Verdict: **{result.verdict.value}**")
+    verdict_fn = VERDICT_DISPLAY[result.verdict.value]
+    verdict_fn(f"Verdict: **{result.verdict.value.upper()}**")
 
     st.markdown(result.answer)
 
@@ -104,9 +126,9 @@ if submitted and question:
     st.subheader("Retrieved chunks: kept vs. dropped")
     st.caption("A chunk is only dropped when Jev is confidently sure it's irrelevant.")
     for entry in result.relevance_log:
-        icon = "✅ kept" if entry.kept else "❌ dropped"
+        status = "KEPT" if entry.kept else "DROPPED"
         st.text(
-            f"{icon} — {entry.paragraph.paragraph_id} "
+            f"{status} - {entry.paragraph.paragraph_id} "
             f"(relevant={entry.relevant}, confidence={entry.confidence:.2f}, {entry.reason})"
         )
 

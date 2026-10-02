@@ -11,3 +11,4 @@ tickers:
   - KO
   - PFE
   - WMT
+  - JPM # Item 1A ingests cleanly; Item 7 is a thin stub -- see README limitations

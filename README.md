@@ -35,7 +35,7 @@ flowchart LR
 
 | Metric | Result |
 |---|---|
-| Filings / paragraphs processed | 12 filings (6 companies × 2 years) → 3,246 paragraphs |
+| Filings / paragraphs processed | 13 filings (7 companies) → 3,793 paragraphs |
 | Retrieval recall@5 (with vs. without Jev filter) | 0.85 / 0.85 |
 | Fabricated numbers / hallucinated citations caught by the gate | 100% (7/7) |
 | Unsupported claims caught by Jev's groundedness check (no numeric/citation issue) | 100% (3/3) |
@@ -110,7 +110,7 @@ Uses real Jev if `JEV_API_KEY` is set in `.env`, otherwise falls back to a deter
 - **Catches hallucinations; doesn't eliminate them.** The verification step reduces unsupported answers, and the evaluation measures how many still slip through.
 - **Prose only.** Financial tables and statements aren't parsed yet.
 - **Small scope:** a handful of companies, for demonstration.
-- **Some filers structure their MD&A as a page-number pointer into a separate "wrap" section instead of writing it inline under Item 7** (seen in JPMorgan's and Chevron's 10-Ks). Ingestion doesn't follow that pointer, so such filers are left out of the MVP list rather than silently ingested with empty MD&A.
+- **Some filers structure their MD&A as a page-number pointer into a separate "wrap" section instead of writing it inline under Item 7** (seen in JPMorgan's and Chevron's 10-Ks). Ingestion doesn't follow that pointer. Chevron was left out of the MVP list for this reason; JPMorgan is included anyway because its Item 1A (Risk Factors) ingests cleanly — only its MD&A is a near-empty stub, not its risk factors.
 - **The numeric check can false-flag a real number** if it's paraphrased rather than repeated verbatim in the cited paragraph (e.g. a year mentioned in the answer but not restated in the cited sentence). It's a substring heuristic, not semantic matching, so it errs toward flagging rather than missing a real hallucination.
 - **Jev itself is weak at numbers, counting, dates, and literal reading** — that's a known property of the model, not a bug. It's why this architecture never asks Jev to do arithmetic: Jev only ever picks from a fixed option list or returns a bounded score, and every number in an answer is checked by plain code (`answer/numeric_check.py`) instead.
 - **The groundedness gate is conservative out of the box.** Most grounded, correctly-cited answers land as "flagged" rather than "confident" with the default `groundedness_threshold` (see Results) — tune `config/thresholds.yaml` against your own data before trusting the "confident" bucket alone.

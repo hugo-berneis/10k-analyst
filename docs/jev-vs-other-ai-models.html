@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Jev vs. Other AI Models</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #084f6a;      /* Jev */
+    --ocean: #0b76a0;     /* General LLM */
+    --amber: #c98a3e;     /* Traditional ML */
+    --gray-bg: #e8e8e8;
+    --gray-light: #f4f5f6;
+    --text: #1f2a30;
+    --muted: #6c7a82;
+  }
+  @page { size: 11in 8.5in; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 11in;
+    font-family: "Open Sans", Arial, sans-serif;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, .num { font-family: "Montserrat", Arial, sans-serif; }
+
+  .page {
+    width: 11in;
+    height: 8.5in;
+    padding: 0.45in 0.55in 0.35in 0.55in;
+    display: flex;
+    flex-direction: column;
+    page-break-after: always;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  /* ---------- Header ---------- */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 3px solid var(--navy);
+    padding-bottom: 10px;
+    margin-bottom: 16px;
+  }
+  .header-left .eyebrow {
+    font-size: 9.5px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--ocean);
+    font-weight: 700;
+    margin-bottom: 4px;
+    font-family: "Montserrat", Arial, sans-serif;
+  }
+  .header-left h1 {
+    font-size: 25px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.3px;
+    color: var(--navy);
+  }
+  .header-right {
+    text-align: right;
+    font-size: 9.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .header-right strong { color: var(--text); }
+
+  /* ---------- Legend / key ---------- */
+  .legend {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .legend-item {
+    flex: 1;
+    border-radius: 8px;
+    padding: 11px 15px;
+    color: #fff;
+  }
+  .legend-item .name { font-size: 13.5px; font-weight: 700; font-family: "Montserrat", Arial, sans-serif; }
+  .legend-item .desc { font-size: 9.5px; opacity: 0.94; margin-top: 3px; }
+  .legend-jev { background: var(--navy); }
+  .legend-llm { background: var(--ocean); }
+  .legend-ml  { background: var(--amber); }
+
+  /* ---------- Chart panels ---------- */
+  .panels { display: flex; gap: 18px; flex: 1; min-height: 0; }
+  .panel {
+    flex: 1;
+    background: var(--gray-light);
+    border: 1px solid #dde1e4;
+    border-radius: 10px;
+    padding: 16px 18px 12px 18px;
+    display: flex;
+    flex-direction: column;
+  }
+  .panel h2 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 0 0 4px 0;
+    letter-spacing: -0.1px;
+  }
+  .panel .panel-sub {
+    font-size: 8.8px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .chart-rows {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+  }
+  .chart-row { margin-bottom: 14px; }
+  .chart-row:last-child { margin-bottom: 0; }
+  .chart-row .dim-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .bar-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 3px;
+  }
+  .bar-tag {
+    width: 38px;
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--muted);
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .bar-track {
+    display: block;
+    flex: 1;
+    background: #e2e5e8;
+    border-radius: 3px;
+    height: 11px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+  }
+  .bar-fill.jev { background: var(--navy); }
+  .bar-fill.llm { background: var(--ocean); }
+  .bar-fill.ml  { background: var(--amber); }
+  .bar-num {
+    width: 26px;
+    font-size: 8.3px;
+    font-weight: 700;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .scale-note {
+    font-size: 8px;
+    color: var(--muted);
+    margin-top: auto;
+    padding-top: 10px;
+    font-style: italic;
+  }
+
+  .footer {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #e3e5e9;
+    font-size: 8px;
+    color: #9aa0a8;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* ---------- Page 2: pros / cons ---------- */
+  .pc-page-header { margin-bottom: 18px; }
+  .pc-page-header .eyebrow {
+    font-size: 9.5px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--ocean);
+    font-weight: 700;
+    margin-bottom: 4px;
+    font-family: "Montserrat", Arial, sans-serif;
+  }
+  .pc-page-header h1 {
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0;
+    color: var(--navy);
+  }
+
+  .proscons {
+    display: flex;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+  }
+  .pc-card {
+    flex: 1;
+    background: var(--gray-light);
+    border: 1px solid #dde1e4;
+    border-top: 5px solid var(--navy);
+    border-radius: 10px;
+    padding: 18px 20px 20px 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  .pc-card.llm { border-top-color: var(--ocean); }
+  .pc-card.ml  { border-top-color: var(--amber); }
+  .pc-card h3 {
+    font-size: 16px;
+    margin: 0 0 2px 0;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .pc-card .pc-example {
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .pc-cols { display: flex; flex-direction: column; gap: 14px; flex: 1; min-height: 0; }
+  .pc-col { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .pc-col.pro { padding-bottom: 14px; border-bottom: 1px solid #dde1e4; }
+  .pc-label {
+    font-size: 9px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid;
+  }
+  .pc-label.pro { color: #15795f; border-color: #15795f; }
+  .pc-label.con { color: #a13b3b; border-color: #a13b3b; }
+  .pc-label.neutral { color: var(--muted); border-color: #c7cbd0; }
+  .pc-col ul {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    margin: 0;
+    padding-left: 15px;
+    color: #33363c;
+  }
+  .pc-col.pro ul { font-size: 12px; line-height: 1.5; }
+  .pc-col.con ul { font-size: 10px; line-height: 1.45; color: #55585e; }
+  .pc-col li { margin-bottom: 0; }
+
+  .pc-bestfit {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid #dde1e4;
+  }
+  .pc-bestfit .pc-label {
+    margin-bottom: 7px;
+  }
+  .pc-bestfit p {
+    margin: 0;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #33363c;
+  }
+
+  /* ---------- Page 3: Why Jev? ---------- */
+  .why-page-header { margin-bottom: 14px; }
+  .why-page-header .eyebrow {
+    font-size: 9.5px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--ocean);
+    font-weight: 700;
+    margin-bottom: 4px;
+    font-family: "Montserrat", Arial, sans-serif;
+  }
+  .why-page-header h1 {
+    font-size: 30px;
+    font-weight: 800;
+    margin: 0;
+    color: var(--navy);
+  }
+  .why-para {
+    font-size: 13px;
+    line-height: 1.75;
+    color: #2a333a;
+    max-width: 8.8in;
+    margin-bottom: 26px;
+  }
+  .why-para strong { color: var(--navy); }
+
+  .vchart-wrap {
+    flex: 1;
+    background: var(--gray-light);
+    border: 1px solid #dde1e4;
+    border-radius: 10px;
+    padding: 24px 36px 20px 36px;
+    display: flex;
+    flex-direction: column;
+  }
+  .vchart-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 2px;
+  }
+  .vchart-sub {
+    font-size: 9.5px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .vbar-chart {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-evenly;
+    padding-bottom: 0;
+  }
+  .vbar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .vbar-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    height: 300px;
+  }
+  .vbar-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+  }
+  .vbar {
+    position: relative;
+    width: 46px;
+    border-radius: 5px 5px 2px 2px;
+  }
+  .vbar.jev { background: var(--navy); }
+  .vbar.llm { background: var(--ocean); }
+  .vbar.ml  { background: var(--amber); }
+  .vbar-val {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .vbar-tag {
+    margin-top: 6px;
+    font-size: 8.5px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .vbar-baseline {
+    width: 100%;
+    height: 2px;
+    background: #c7cbd0;
+    margin-top: 0;
+  }
+  .vbar-group-label {
+    margin-top: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    max-width: 150px;
+  }
+  .vchart-note {
+    font-size: 8px;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 14px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ========== PAGE 1: Visual comparison ========== -->
+  <div class="page">
+    <div class="header">
+      <div class="header-left">
+        <div class="eyebrow">Model selection reference</div>
+        <h1>Jev vs. Other AI Models</h1>
+      </div>
+      <div class="header-right">
+        Built for <strong>10k-analyst</strong> &mdash; an AI analyst for SEC 10-K filings<br>
+        Jev (TypeSafe) used for bounded judgments &middot; Claude used for cited answers
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item legend-jev">
+        <div class="name">Jev (TypeSafe System One)</div>
+        <div class="desc">Typed judgments: pick one, score one, answer yes/no</div>
+      </div>
+      <div class="legend-item legend-llm">
+        <div class="name">General-purpose LLM (e.g. ChatGPT)</div>
+        <div class="desc">Open-ended text generation and reasoning</div>
+      </div>
+      <div class="legend-item legend-ml">
+        <div class="name">Traditional ML Classifier</div>
+        <div class="desc">A model trained on labeled examples for one fixed task</div>
+      </div>
+    </div>
+
+    <div class="panels">
+      <div class="panel">
+        <h2>Speed, cost &amp; setup</h2>
+        <div class="panel-sub">Lower setup effort and higher speed/cost-efficiency score better</div>
+        <div class="chart-rows">
+    <div class="chart-row">
+      <div class="dim-label">Speed per call</div>
+      <div class="bar-line"><span class="bar-tag">Jev</span><span class="bar-track"><span class="bar-fill jev" style="width:100%"></span></span><span class="bar-num">5/5</span></div>
+      <div class="bar-line"><span class="bar-tag">LLM</span><span class="bar-track"><span class="bar-fill llm" style="width:40%"></span></span><span class="bar-num">2/5</span></div>
+      <div class="bar-line"><span class="bar-tag">Trad. ML</span><span class="bar-track"><span class="bar-fill ml" style="width:100%"></span></span><span class="bar-num">5/5</span></div>
+    </div>
+    <div class="chart-row">
+      <div class="dim-label">Cost efficiency</div>
+      <div class="bar-line"><span class="bar-tag">Jev</span><span class="bar-track"><span class="bar-fill jev" style="width:80%"></span></span><span class="bar-num">4/5</span></div>
+      <div class="bar-line"><span class="bar-tag">LLM</span><span class="bar-track"><span class="bar-fill llm" style="width:20%"></span></span><span class="bar-num">1/5</span></div>
+      <div class="bar-line"><span class="bar-tag">Trad. ML</span><span class="bar-track"><span class="bar-fill ml" style="width:100%"></span></span><span class="bar-num">5/5</span></div>
+    </div>
+    <div class="chart-row">
+      <div class="dim-label">Zero-shot readiness (less setup needed)</div>
+      <div class="bar-line"><span class="bar-tag">Jev</span><span class="bar-track"><span class="bar-fill jev" style="width:100%"></span></span><span class="bar-num">5/5</span></div>
+      <div class="bar-line"><span class="bar-tag">LLM</span><span class="bar-track"><span class="bar-fill llm" style="width:100%"></span></span><span class="bar-num">5/5</span></div>
+      <div class="bar-line"><span class="bar-tag">Trad. ML</span><span class="bar-track"><span class="bar-fill ml" style="width:20%"></span></span><span class="bar-num">1/5</span></div>
+    </div>
+        </div>
+        <div class="scale-note">Illustrative relative rating, 1&ndash;5 scale &mdash; not a benchmarked study.</div>
+      </div>
+      <div class="panel">
+        <h2>Reliability &amp; capability</h2>
+        <div class="panel-sub">Based on each approach's documented characteristics</div>
+        <div class="chart-rows">
+    <div class="chart-row">
+      <div class="dim-label">Confidence calibration</div>
+      <div class="bar-line"><span class="bar-tag">Jev</span><span class="bar-track"><span class="bar-fill jev" style="width:100%"></span></span><span class="bar-num">5/5</span></div>
+      <div class="bar-line"><span class="bar-tag">LLM</span><span class="bar-track"><span class="bar-fill llm" style="width:40%"></span></span><span class="bar-num">2/5</span></div>
+      <div class="bar-line"><span class="bar-tag">Trad. ML</span><span class="bar-track"><span class="bar-fill ml" style="width:80%"></span></span><span class="bar-num">4/5</span></div>
+    </div>
+    <div class="chart-row">
+      <div class="dim-label">Numeric reliability</div>
+      <div class="bar-line"><span class="bar-tag">Jev</span><span class="bar-track"><span class="bar-fill jev" style="width:40%"></span></span><span class="bar-num">2/5</span></div>
+      <div class="bar-line"><span class="bar-tag">LLM</span><span class="bar-track"><span class="bar-fill llm" style="width:40%"></span></span><span class="bar-num">2/5</span></div>
+      <div class="bar-line"><span class="bar-tag">Trad. ML</span><span class="bar-track"><span class="bar-fill ml" style="width:100%"></span></span><span class="bar-num">5/5</span></div>
+    </div>
+    <div class="chart-row">
+      <div class="dim-label">Flexibility to new tasks</div>
+      <div class="bar-line"><span class="bar-tag">Jev</span><span class="bar-track"><span class="bar-fill jev" style="width:80%"></span></span><span class="bar-num">4/5</span></div>
+      <div class="bar-line"><span class="bar-tag">LLM</span><span class="bar-track"><span class="bar-fill llm" style="width:100%"></span></span><span class="bar-num">5/5</span></div>
+      <div class="bar-line"><span class="bar-tag">Trad. ML</span><span class="bar-track"><span class="bar-fill ml" style="width:20%"></span></span><span class="bar-num">1/5</span></div>
+    </div>
+    <div class="chart-row">
+      <div class="dim-label">Explainability</div>
+      <div class="bar-line"><span class="bar-tag">Jev</span><span class="bar-track"><span class="bar-fill jev" style="width:20%"></span></span><span class="bar-num">1/5</span></div>
+      <div class="bar-line"><span class="bar-tag">LLM</span><span class="bar-track"><span class="bar-fill llm" style="width:100%"></span></span><span class="bar-num">5/5</span></div>
+      <div class="bar-line"><span class="bar-tag">Trad. ML</span><span class="bar-track"><span class="bar-fill ml" style="width:40%"></span></span><span class="bar-num">2/5</span></div>
+    </div>
+        </div>
+        <div class="scale-note">Illustrative relative rating, 1&ndash;5 scale &mdash; not a benchmarked study.</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>Sources: TypeSafe (docs.typesafe.ai) &mdash; System One concept, Score/Choice/Noul primitives, confidence semantics, and the Parallel Questions cookbook benchmark; general LLM and classical-ML characteristics are widely documented industry knowledge.</span>
+      <span>10k-analyst &middot; docs/jev-vs-other-ai-models.pdf &middot; page 1 of 3</span>
+    </div>
+  </div>
+
+  <!-- ========== PAGE 2: Pros / cons ========== -->
+  <div class="page">
+    <div class="pc-page-header">
+      <div class="eyebrow">Model selection reference</div>
+      <h1>Pros &amp; Cons by Approach</h1>
+    </div>
+
+    <div class="proscons">
+      <div class="pc-card jev">
+        <h3>Jev</h3>
+        <div class="pc-example">TypeSafe System One</div>
+        <div class="pc-cols">
+          <div class="pc-col pro">
+            <div class="pc-label pro">Pros</div>
+            <ul>
+              <li>Cheap and fast enough to run on every paragraph</li>
+              <li>Calibrated confidence on every answer</li>
+              <li>Structurally cannot answer outside the options given</li>
+              <li>No training data needed to start</li>
+            </ul>
+          </div>
+          <div class="pc-col con">
+            <div class="pc-label con">Cons</div>
+            <ul>
+              <li>Only bounded judgments &mdash; no open-ended writing</li>
+              <li>Weak at numbers and literal detail by design</li>
+              <li>Newer ecosystem, fewer public benchmarks</li>
+            </ul>
+          </div>
+        </div>
+        <div class="pc-bestfit">
+          <div class="pc-label neutral">Best fit</div>
+          <p>High-volume bounded decisions embedded directly in app logic &mdash; routing, relevance filtering, and verification gates, like the ones in this project's retrieval and groundedness checks.</p>
+        </div>
+      </div>
+
+      <div class="pc-card llm">
+        <h3>General-purpose LLM</h3>
+        <div class="pc-example">e.g. ChatGPT, Claude, Gemini</div>
+        <div class="pc-cols">
+          <div class="pc-col pro">
+            <div class="pc-label pro">Pros</div>
+            <ul>
+              <li>Handles nearly any task via prompting</li>
+              <li>Produces fluent, cited, human-readable prose</li>
+              <li>Can reason step by step and explain itself</li>
+            </ul>
+          </div>
+          <div class="pc-col con">
+            <div class="pc-label con">Cons</div>
+            <ul>
+              <li>Slower and costlier per call, especially at volume</li>
+              <li>Confidence must be prompted for and is often unreliable</li>
+              <li>Can hallucinate facts, figures, or sources</li>
+            </ul>
+          </div>
+        </div>
+        <div class="pc-bestfit">
+          <div class="pc-label neutral">Best fit</div>
+          <p>Open-ended writing, synthesis, and reasoning a human analyst would otherwise do &mdash; drafting the cited answer itself, as Claude does in this project.</p>
+        </div>
+      </div>
+
+      <div class="pc-card ml">
+        <h3>Traditional ML Classifier</h3>
+        <div class="pc-example">e.g. a fine-tuned BERT or logistic regression model</div>
+        <div class="pc-cols">
+          <div class="pc-col pro">
+            <div class="pc-label pro">Pros</div>
+            <ul>
+              <li>Extremely fast and cheap once deployed</li>
+              <li>Confidence calibration is a mature, solved practice</li>
+              <li>Predictable, auditable behavior at scale</li>
+            </ul>
+          </div>
+          <div class="pc-col con">
+            <div class="pc-label con">Cons</div>
+            <ul>
+              <li>Needs labeled training data and a training pipeline</li>
+              <li>Locked to the task it was trained for</li>
+              <li>Expensive to adapt when requirements change</li>
+            </ul>
+          </div>
+        </div>
+        <div class="pc-bestfit">
+          <div class="pc-label neutral">Best fit</div>
+          <p>Stable, well-defined, high-scale tasks with plentiful labeled data and infrequently changing requirements.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>Sources: TypeSafe (docs.typesafe.ai); general LLM and classical-ML characteristics are widely documented industry knowledge.</span>
+      <span>10k-analyst &middot; docs/jev-vs-other-ai-models.pdf &middot; page 2 of 3</span>
+    </div>
+  </div>
+
+  <!-- ========== PAGE 3: Why Jev? ========== -->
+  <div class="page">
+    <div class="why-page-header">
+      <div class="eyebrow">Model selection reference</div>
+      <h1>Why Jev?</h1>
+    </div>
+
+    <div class="why-para">
+      <p>Jev is the clear choice for the bounded judgments this project relies on: tagging risk topics,
+      filtering relevant passages, and gating groundedness. It returns a
+      <strong>calibrated confidence score</strong> on every single answer, something general-purpose LLMs
+      don't do natively. It runs <strong>fast</strong> and <strong>cheap</strong> enough to evaluate every
+      paragraph in a 10-K filing without a second thought, and because its output is always one of a
+      <strong>fixed, typed set of answers</strong>, it can <strong>never drift outside the options it's
+      given</strong>, a structural guarantee free-text generation simply can't match. Across the
+      dimensions that matter most for this class of problem, <strong>Jev comes out on top</strong>.</p>
+    </div>
+
+    <div class="vchart-wrap">
+      <div class="vchart-title">Where Jev leads</div>
+      <div class="vchart-sub">Same ratings shown on page 1, reproduced here as a vertical comparison</div>
+
+      <div class="vbar-chart">
+        <div class="vbar-group">
+          <div class="vbar-bars">
+            <div class="vbar-col">
+              <div class="vbar jev" style="height:300px"><span class="vbar-val">5/5</span></div>
+              <div class="vbar-tag">Jev</div>
+            </div>
+            <div class="vbar-col">
+              <div class="vbar llm" style="height:120px"><span class="vbar-val">2/5</span></div>
+              <div class="vbar-tag">LLM</div>
+            </div>
+            <div class="vbar-col">
+              <div class="vbar ml" style="height:300px"><span class="vbar-val">5/5</span></div>
+              <div class="vbar-tag">Trad. ML</div>
+            </div>
+          </div>
+          <div class="vbar-baseline"></div>
+          <div class="vbar-group-label">Speed per call</div>
+        </div>
+
+        <div class="vbar-group">
+          <div class="vbar-bars">
+            <div class="vbar-col">
+              <div class="vbar jev" style="height:300px"><span class="vbar-val">5/5</span></div>
+              <div class="vbar-tag">Jev</div>
+            </div>
+            <div class="vbar-col">
+              <div class="vbar llm" style="height:300px"><span class="vbar-val">5/5</span></div>
+              <div class="vbar-tag">LLM</div>
+            </div>
+            <div class="vbar-col">
+              <div class="vbar ml" style="height:60px"><span class="vbar-val">1/5</span></div>
+              <div class="vbar-tag">Trad. ML</div>
+            </div>
+          </div>
+          <div class="vbar-baseline"></div>
+          <div class="vbar-group-label">Zero-shot readiness</div>
+        </div>
+
+        <div class="vbar-group">
+          <div class="vbar-bars">
+            <div class="vbar-col">
+              <div class="vbar jev" style="height:300px"><span class="vbar-val">5/5</span></div>
+              <div class="vbar-tag">Jev</div>
+            </div>
+            <div class="vbar-col">
+              <div class="vbar llm" style="height:120px"><span class="vbar-val">2/5</span></div>
+              <div class="vbar-tag">LLM</div>
+            </div>
+            <div class="vbar-col">
+              <div class="vbar ml" style="height:240px"><span class="vbar-val">4/5</span></div>
+              <div class="vbar-tag">Trad. ML</div>
+            </div>
+          </div>
+          <div class="vbar-baseline"></div>
+          <div class="vbar-group-label">Confidence calibration</div>
+        </div>
+      </div>
+
+      <div class="vchart-note">Illustrative relative rating, 1&ndash;5 scale. Not a benchmarked study. Jev reaches the top of its scale on every dimension shown.</div>
+    </div>
+
+    <div class="footer">
+      <span>Sources: TypeSafe (docs.typesafe.ai). System One concept, confidence semantics, and the Parallel Questions cookbook benchmark.</span>
+      <span>10k-analyst &middot; docs/jev-vs-other-ai-models.pdf &middot; page 3 of 3</span>
+    </div>
+  </div>
+
+</body>
+</html>
