@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>How 10k-analyst Works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #084f6a;
+    --ocean: #0b76a0;
+    --amber: #c98a3e;
+    --gray-light: #f4f5f6;
+    --text: #1f2a30;
+    --muted: #6c7a82;
+  }
+  @page { size: 8.5in 11in; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 8.5in;
+    font-family: "Open Sans", Arial, sans-serif;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, .num { font-family: "Montserrat", Arial, sans-serif; }
+
+  .page {
+    width: 8.5in;
+    min-height: 11in;
+    padding: 0.6in 0.65in 0.5in 0.65in;
+    display: flex;
+    flex-direction: column;
+    page-break-after: always;
+  }
+  .page:last-child { page-break-after: auto; }
+  .content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--ocean);
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+  .title-page h1 {
+    font-size: 34px;
+    font-weight: 800;
+    color: var(--navy);
+    margin: 0 0 10px 0;
+    letter-spacing: -0.5px;
+  }
+  .title-page .subtitle {
+    font-size: 15px;
+    color: var(--muted);
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+  .title-page {
+    border-top: 6px solid var(--navy);
+  }
+  .title-page .content { align-items: flex-start; }
+  .title-blurb {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #33363c;
+    max-width: 6.6in;
+    background: var(--gray-light);
+    border: 1px solid #dde1e4;
+    border-radius: 10px;
+    padding: 18px 22px;
+  }
+  .title-meta {
+    margin-top: auto;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  h2.section-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--navy);
+    margin: 0 0 4px 0;
+  }
+  .section-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  p { font-size: 11.5px; line-height: 1.65; color: #2a333a; margin: 0 0 10px 0; }
+  strong { color: var(--navy); }
+
+  .callout {
+    background: var(--gray-light);
+    border-left: 4px solid var(--ocean);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 11px;
+    line-height: 1.6;
+    margin: 10px 0 16px 0;
+    color: #33363c;
+  }
+  .callout strong { color: var(--text); }
+
+  .phase-list { display: flex; flex-direction: column; gap: 10px; }
+  .phase {
+    display: flex;
+    gap: 12px;
+    background: var(--gray-light);
+    border: 1px solid #dde1e4;
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .phase-num {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    font-weight: 800;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .phase-body h3 {
+    font-size: 12.5px;
+    margin: 0 0 3px 0;
+    color: var(--text);
+    font-weight: 700;
+  }
+  .phase-body p { font-size: 10.5px; margin: 0; color: #3a3f45; line-height: 1.55; }
+  .phase-body code {
+    background: #e8ebed;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 9.5px;
+  }
+
+  .flow {
+    background: var(--gray-light);
+    border: 1px solid #dde1e4;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .flow-steps { display: flex; flex-direction: column; gap: 6px; }
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+  }
+  .flow-step .fs-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--ocean); flex-shrink: 0;
+  }
+  .flow-step .fs-text strong { color: var(--text); }
+  .flow-arrow { font-size: 10px; color: var(--muted); padding-left: 4px; }
+
+  table.compare {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5px;
+    margin-top: 8px;
+  }
+  table.compare th {
+    background: var(--navy);
+    color: #fff;
+    text-align: left;
+    padding: 8px 10px;
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  table.compare td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #e3e5e9;
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  table.compare tr:nth-child(even) td { background: #f8f9fa; }
+  table.compare td.label { font-weight: 700; color: var(--text); width: 22%; }
+
+  .why-grid { display: flex; gap: 12px; margin-top: 10px; }
+  .why-card {
+    flex: 1;
+    background: var(--gray-light);
+    border: 1px solid #dde1e4;
+    border-top: 4px solid var(--navy);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .why-card.llm { border-top-color: var(--ocean); }
+  .why-card.ml { border-top-color: var(--amber); }
+  .why-card h3 { font-size: 12px; margin: 0 0 6px 0; }
+  .why-card p { font-size: 10px; margin: 0; line-height: 1.55; }
+
+  .footer {
+    padding-top: 10px;
+    border-top: 1px solid #e3e5e9;
+    font-size: 8.5px;
+    color: #9aa0a8;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ========== PAGE 1: Title ========== -->
+  <div class="page title-page">
+    <div class="content">
+    <div class="eyebrow">A plain-language walkthrough</div>
+    <h1>How 10k-analyst Works</h1>
+    <div class="subtitle">From raw SEC filings to a trustworthy, cited answer &mdash; explained the way you'd explain it to a friend, not a textbook.</div>
+    <div class="title-blurb">
+      Every year, public companies like Apple and Microsoft have to publish a giant legal document called a <strong>10-K</strong> that lists, among other things, every risk that could hurt the business. These documents are hundreds of pages long and written in dense legal language. <strong>10k-analyst</strong> is a program that reads those filings, understands them, and lets you ask plain-English questions about them &mdash; and it's built so that it never just makes up an answer. Every fact it gives you is backed by a real sentence from a real filing, checked by code before you ever see it.
+    </div>
+    </div>
+    <div class="title-meta">10k-analyst &middot; project walkthrough &middot; page 1 of 7</div>
+  </div>
+
+  <!-- ========== PAGE 2: The big picture ========== -->
+  <div class="page">
+    <div class="content">
+    <div class="eyebrow">The big picture</div>
+    <h2 class="section-title">What problem is this actually solving?</h2>
+    <div class="section-sub">Why this program exists, in one page</div>
+
+    <p>Imagine you wanted to know what Apple thinks could go wrong with its business this year. The honest answer is somewhere inside a 150-page legal document on a government website. Nobody has time to read that. So the easy shortcut is to paste the document into a chatbot and ask it to summarize. The problem is that chatbots are known to <strong>hallucinate</strong> &mdash; they sometimes make up facts, numbers, or quotes that sound completely real but aren't actually in the source. In a casual setting that's annoying. In finance, where a made-up number could change someone's decision, it's dangerous.</p>
+
+    <p>10k-analyst exists to fix that specific problem. It doesn't trust any single AI model to both find the right information <em>and</em> tell the truth about it. Instead, it splits the job into small pieces and gives each piece to whichever tool is actually good at it:</p>
+
+    <div class="callout">
+      <strong>The core idea:</strong> fast yes/no and multiple-choice judgments (is this paragraph relevant? is this topic about cybersecurity?) go to a specialized decision model called <strong>Jev</strong>. Open-ended writing goes to a general chatbot (<strong>Claude</strong>). And anything involving a <em>number</em> &mdash; dollars, percentages, dates &mdash; is checked by plain, old-fashioned <strong>code</strong>, because no AI model should be trusted to do arithmetic correctly every single time.
+    </div>
+
+    <p>That's the whole philosophy of the project in one sentence: <strong>use AI for judgment, not for facts, and let code double-check everything that can be double-checked.</strong> The rest of this document walks through how that idea turns into actual working software, phase by phase, and then explains why Jev specifically was picked for the judgment calls instead of just using one chatbot for everything.</p>
+
+    </div>
+    <div class="footer">
+      <span>10k-analyst &middot; how-it-works.pdf</span>
+      <span>page 2 of 7</span>
+    </div>
+  </div>
+
+  <!-- ========== PAGE 3: Pipeline flow ========== -->
+  <div class="page">
+    <div class="content">
+    <div class="eyebrow">The journey of a question</div>
+    <h2 class="section-title">From a filing to an answer, step by step</h2>
+    <div class="section-sub">What actually happens when you type a question into the app</div>
+
+    <div class="flow">
+      <div class="flow-steps">
+        <div class="flow-step"><div class="fs-dot"></div><div class="fs-text"><strong>1. Download.</strong> The program grabs real 10-K filings straight from the SEC's own website (EDGAR) for a list of companies.</div></div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-step"><div class="fs-dot"></div><div class="fs-text"><strong>2. Cut out the useful parts.</strong> A 10-K has dozens of sections; only two actually matter here &mdash; "Risk Factors" and "Management's Discussion." Everything else is thrown away.</div></div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-step"><div class="fs-dot"></div><div class="fs-text"><strong>3. Chop into paragraphs.</strong> Those two sections get split into individual paragraphs, each with its own ID tag, like a library call number.</div></div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-step"><div class="fs-dot"></div><div class="fs-text"><strong>4. Label every paragraph.</strong> Jev reads each paragraph and tags it with a topic (is this about cybersecurity? supply chains? lawsuits?) and a tone score (how alarming does this sound?).</div></div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-step"><div class="fs-dot"></div><div class="fs-text"><strong>5. Turn paragraphs into searchable math.</strong> Every paragraph is converted into a list of numbers (an "embedding") that captures its meaning, and stored in a database built for fast similarity search.</div></div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-step"><div class="fs-dot"></div><div class="fs-text"><strong>6. You ask a question.</strong> The question gets turned into the same kind of number-list, and the database finds the paragraphs whose meaning is closest to it.</div></div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-step"><div class="fs-dot"></div><div class="fs-text"><strong>7. Jev double-checks relevance.</strong> Just because a paragraph is mathematically "close" doesn't mean it's actually useful &mdash; Jev reviews each one and flags anything it's confident is off-topic.</div></div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-step"><div class="fs-dot"></div><div class="fs-text"><strong>8. Claude writes the answer.</strong> The chatbot writes a real, readable answer &mdash; but it's required to cite exactly which paragraph IDs it used, like footnotes.</div></div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-step"><div class="fs-dot"></div><div class="fs-text"><strong>9. Code checks every number.</strong> Any dollar amount, percentage, or figure in the answer gets pulled out and checked against the actual cited text. If a number isn't really there, it gets flagged.</div></div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-step"><div class="fs-dot"></div><div class="fs-text"><strong>10. Jev gives a final grounding check.</strong> Jev reviews the finished answer one more time for whether it's actually supported by the sources. If confidence is too low, the app shows a warning instead of pretending everything is fine.</div></div>
+      </div>
+    </div>
+
+    <p>That's it &mdash; ten steps, each one small and easy to test on its own, that together turn a messy legal document into a trustworthy answer with receipts.</p>
+
+    </div>
+    <div class="footer">
+      <span>10k-analyst &middot; how-it-works.pdf</span>
+      <span>page 3 of 7</span>
+    </div>
+  </div>
+
+  <!-- ========== PAGE 4: Phase recaps ========== -->
+  <div class="page">
+    <div class="content">
+    <div class="eyebrow">Build log, in order</div>
+    <h2 class="section-title">How it was actually built, phase by phase</h2>
+    <div class="section-sub">Each phase added one working piece before moving to the next</div>
+
+    <div class="phase-list">
+      <div class="phase">
+        <div class="phase-num">0</div>
+        <div class="phase-body">
+          <h3>Scaffold</h3>
+          <p>Set up the project's skeleton: the folders, the database (Postgres, with a special add-on called <code>pgvector</code> for searching by meaning), and a fake stand-in for Jev so the whole app could be built and tested before the real Jev account even existed.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">1</div>
+        <div class="phase-body">
+          <h3>Ingest</h3>
+          <p>Built the tool that downloads real 10-K filings from the SEC and slices out just the Risk Factors and MD&amp;A sections, splitting them into clean paragraphs. Ran against 6 real companies with zero manual copy-pasting.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">2</div>
+        <div class="phase-body">
+          <h3>Tag + embed</h3>
+          <p>Every paragraph got a risk-topic label and a tone score from Jev, plus a math-vector of its meaning, all saved to the database so paragraphs could later be filtered and searched.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">3</div>
+        <div class="phase-body">
+          <h3>Retrieve + answer + guard</h3>
+          <p>Built the actual question-answering pipeline: search by meaning, filter with Jev, write the answer with Claude, verify every number with code, and gate the final answer behind a groundedness check. This is the heart of the whole program.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">4</div>
+        <div class="phase-body">
+          <h3>Evaluate</h3>
+          <p>Built a hand-checked set of real questions with known correct answers, plus a set of deliberately wrong "trap" answers, to measure how often the system finds the right information and how well it catches its own mistakes.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">5</div>
+        <div class="phase-body">
+          <h3>Demo + README</h3>
+          <p>Built a simple point-and-click web page (using Streamlit) so anyone can ask a question without touching code, plus documentation explaining how to run the whole project from scratch.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">+</div>
+        <div class="phase-body">
+          <h3>Real Jev integration &amp; polish</h3>
+          <p>Swapped the fake stand-in for the real Jev model, sped up the tagging step by roughly 10&times; by batching questions and running them in parallel, and tightened up the demo (cleaner UI, more example questions, more companies added).</p>
+        </div>
+      </div>
+    </div>
+
+    </div>
+    <div class="footer">
+      <span>10k-analyst &middot; how-it-works.pdf</span>
+      <span>page 4 of 7</span>
+    </div>
+  </div>
+
+  <!-- ========== PAGE 5: Why this matters / who uses it ========== -->
+  <div class="page">
+    <div class="content">
+    <div class="eyebrow">The payoff</div>
+    <h2 class="section-title">Why does any of this matter?</h2>
+    <div class="section-sub">Who would actually want to use something like this</div>
+
+    <p>Reading 10-K filings is part of how investors, analysts, journalists, and even students doing research try to understand a company before trusting it with their money, their attention, or their recommendation to someone else. The problem has never been that the information doesn't exist &mdash; it's that it's buried in hundreds of pages of dense legal writing that almost nobody actually reads in full.</p>
+
+    <p>10k-analyst matters because it closes the gap between "the answer technically exists in a public document" and "a normal person can actually get that answer in ten seconds, and trust it." A few concrete groups who'd get real value out of a tool like this:</p>
+
+    <div class="callout">
+      <strong>Everyday investors</strong> who want to understand a company's risks before buying stock, without paying for an expensive research terminal or reading 150 pages themselves.
+    </div>
+    <div class="callout">
+      <strong>Students and researchers</strong> learning how real companies describe risk, who need quick, citation-backed answers instead of wading through raw filings.
+    </div>
+    <div class="callout">
+      <strong>Analysts and journalists</strong> who need a fast first pass across many companies, but still need to know exactly which sentence backs up any claim before they'd ever repeat it publicly.
+    </div>
+
+    <p>What makes this different from "just ask a chatbot" is the <strong>trust layer</strong> built around the answer. A regular chatbot will confidently answer even when it's wrong. This program is built to do the opposite: when it isn't sure, it says so, flags the specific problem, or refuses to answer at all rather than guessing. That's the entire point &mdash; an answer you can actually rely on is worth more than an answer that merely sounds confident.</p>
+
+    </div>
+    <div class="footer">
+      <span>10k-analyst &middot; how-it-works.pdf</span>
+      <span>page 5 of 7</span>
+    </div>
+  </div>
+
+  <!-- ========== PAGE 6: Jev vs other models ========== -->
+  <div class="page">
+    <div class="content">
+    <div class="eyebrow">Under the hood</div>
+    <h2 class="section-title">What makes Jev different from a regular chatbot?</h2>
+    <div class="section-sub">Same question, two very different kinds of AI</div>
+
+    <p>It helps to think of these two AI tools like two different employees with two very different jobs. A <strong>general chatbot</strong> (like ChatGPT or Claude) is like a skilled writer &mdash; you can ask it almost anything, and it'll give you a thoughtful, well-written response. But ask it "how sure are you?" and it's just guessing out loud, because it was never built to actually measure its own confidence. <strong>Jev</strong> is more like a very fast, very consistent referee &mdash; you give it a narrow question with a fixed set of possible answers ("is this paragraph about cybersecurity, yes or no?"), and it gives you back an answer <em>plus</em> a real, calibrated confidence number that's been measured to actually mean what it says.</p>
+
+    <table class="compare">
+      <tr><th>What you're comparing</th><th>Jev</th><th>General chatbot (e.g. Claude, ChatGPT)</th></tr>
+      <tr><td class="label">What it's good at</td><td>Quick yes/no and multiple-choice decisions</td><td>Writing full, flowing, readable answers</td></tr>
+      <tr><td class="label">Confidence score</td><td>Built in and genuinely trustworthy</td><td>Has to be prompted for, often unreliable</td></tr>
+      <tr><td class="label">Can it go off-script?</td><td>No &mdash; it can only ever pick from the options you give it</td><td>Yes &mdash; it can say almost anything, including made-up facts</td></tr>
+      <tr><td class="label">Speed &amp; cost per call</td><td>Very fast and cheap, built for high volume</td><td>Slower and pricier, especially at scale</td></tr>
+      <tr><td class="label">Good at numbers/dates?</td><td>No &mdash; intentionally not its job</td><td>Not reliably either &mdash; that's why code checks numbers, not either AI</td></tr>
+      <tr><td class="label">Best used for</td><td>Tagging, filtering, and fact-checking steps running behind the scenes</td><td>Writing the actual answer a person reads</td></tr>
+    </table>
+
+    <div class="callout">
+      <strong>In this project, specifically:</strong> Jev decides which paragraphs are relevant and whether the final answer is actually backed by the source text. Claude writes the readable answer itself. Code checks every number. No single tool is asked to do a job it isn't actually good at.
+    </div>
+
+    </div>
+    <div class="footer">
+      <span>10k-analyst &middot; how-it-works.pdf</span>
+      <span>page 6 of 7</span>
+    </div>
+  </div>
+
+  <!-- ========== PAGE 7: Why Jev wins for this job ========== -->
+  <div class="page">
+    <div class="content">
+    <div class="eyebrow">The takeaway</div>
+    <h2 class="section-title">Why Jev specifically was the right call here</h2>
+    <div class="section-sub">Three reasons this project leans on Jev instead of just using one chatbot for everything</div>
+
+    <div class="why-grid">
+      <div class="why-card">
+        <h3>It can't lie by accident</h3>
+        <p>Because Jev only ever picks from a fixed list of answers you give it, it <strong>structurally cannot</strong> wander off and invent a brand-new, made-up answer the way free-text writing can. That's not a promise &mdash; it's a built-in limit on what it's even capable of outputting.</p>
+      </div>
+      <div class="why-card llm">
+        <h3>Its confidence actually means something</h3>
+        <p>When Jev says it's 90% sure, that number has been <strong>calibrated</strong> &mdash; meaning it's been checked to actually line up with how often it's right. A regular chatbot's confidence is more like a vibe; Jev's is closer to an actual measurement.</p>
+      </div>
+      <div class="why-card ml">
+        <h3>It's fast and cheap enough to use constantly</h3>
+        <p>This project runs Jev on <strong>every single paragraph</strong> of every filing &mdash; thousands of small decisions. That only works because Jev is built to be fast and cheap per call. Doing that with a full chatbot call every time would be slow and expensive at this scale.</p>
+      </div>
+    </div>
+
+    <p style="margin-top:16px;">None of this means Jev is simply "better" than a chatbot in general &mdash; it's better <strong>at this specific kind of job</strong>: small, bounded, repeatable decisions where a trustworthy confidence number matters more than beautiful writing. The chatbot is still the one who writes the final answer you actually read. The real lesson of this whole project is less "which AI is best" and more "match the right tool to the right part of the job" &mdash; which is exactly what separates a program you can actually trust from one that just sounds convincing.</p>
+
+    </div>
+    <div class="footer">
+      <span>10k-analyst &middot; how-it-works.pdf</span>
+      <span>page 7 of 7</span>
+    </div>
+  </div>
+
+</body>
+</html>

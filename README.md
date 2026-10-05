@@ -5,21 +5,6 @@
 - Hugo Berneis — hugo@berneis.com
 - GitHub: HBerneis
 
-## Bug Tracker
-
-- None yet.
-
-## Known Issues
-
-- Catches hallucinations; doesn't eliminate them.
-- Prose only — financial tables and statements aren't parsed.
-- Small scope: a handful of companies, for demonstration.
-- Some filers (JPMorgan, Chevron) structure their MD&A as a page-number pointer into a separate "wrap" section instead of writing it inline under Item 7. Ingestion doesn't follow that pointer. Chevron was left out of the MVP list for this reason; JPMorgan is included anyway because its Item 1A ingests cleanly — only its MD&A is a near-empty stub.
-- The numeric check can false-flag a real number if it's paraphrased rather than repeated verbatim in the cited paragraph.
-- Jev itself is weak at numbers, counting, dates, and literal reading — the architecture never asks Jev to do arithmetic; every number in an answer is checked by plain code instead.
-- The groundedness gate is conservative out of the box — most grounded, correctly-cited answers land as "flagged" rather than "confident" with the default threshold.
-- Without `JEV_API_KEY` set, the pipeline still runs end-to-end via `MockDecisionClient`, a deterministic stand-in whose verdicts aren't meaningful.
-
 ## Instructions to Build
 
 - Requires [Docker](https://www.docker.com/) and [uv](https://docs.astral.sh/uv/) installed first; `uv` installs the pinned Python 3.12 itself.
@@ -65,6 +50,42 @@ uv run python scripts/run_eval.py
 ```
 
 Uses real Jev if `JEV_API_KEY` is set in `.env`, otherwise falls back to `MockDecisionClient` automatically.
+
+## Confidence Thresholds (from confidence-audit)
+
+[confidence-audit](../confidence-audit) (Project 2) calibrates Jev's and an LLM's confidence
+on held-out finance classification tasks and exports frozen thresholds to
+`../confidence-audit/exports/thresholds.json`, validated against
+`../confidence-audit/configs/thresholds.schema.json`:
+
+```json
+[
+  {
+    "task": "financial_sentiment",
+    "model": "llm-mock",
+    "tau_low": 0.7,
+    "tau_high": 0.7,
+    "target": { "coverage": 0.8, "error_rate": 0.1 },
+    "date": "2026-10-04",
+    "run_id": "20261004T200428Z"
+  }
+]
+```
+
+- `tau_high` — above this confidence, trust Jev's decision outright.
+- `tau_low` — below this confidence, reject/abstain; don't show the result.
+- Between the two — still shown, but flagged low-confidence.
+
+This is the same shape as the two independent gates already in
+`config/thresholds.yaml` (`relevance_drop_confidence` rejects below 0.8;
+`groundedness_threshold` accepts above 0.6) — confidence-audit's export is
+meant to calibrate those numbers against real data instead of guessing them.
+
+**Not wired up automatically yet.** `exports/` isn't committed in either
+repo, and `thresholds.py` here still reads flat values from
+`config/thresholds.yaml` by hand. Loading `tau_low`/`tau_high` per
+task/model from `exports/thresholds.json` instead is follow-up work, not
+yet implemented.
 
 ## Instructions to Run Test Suite(s)
 
